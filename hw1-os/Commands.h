@@ -54,12 +54,11 @@ class RedirectionCommand : public Command {
 
 //-------------------------------------Built in simple commands-----------------------------------------------
 
-// tali added for first chptompt command (warm up)
 class  ChpromptCommand : public BuiltInCommand{
   public:
-  explicit ChpromptCommand(const char* cmd_line);
-  virtual ~ChpromptCommand(){}
-  void execute() override;
+    explicit ChpromptCommand(const char* cmd_line);
+    virtual ~ChpromptCommand(){}
+    void execute() override;
 };
 
 class ChangeDirCommand : public BuiltInCommand {
