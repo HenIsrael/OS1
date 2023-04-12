@@ -119,6 +119,13 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     return new ExternalCommand(cmd_line);
   }
   */
+
+  string cmd_s = _trim(string(cmd_line));
+  string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
+  if (firstWord.compare("chprompt") == 0) {
+    return new ChmodCommand(cmd_line);
+  }
+   
   return nullptr;
 }
 
