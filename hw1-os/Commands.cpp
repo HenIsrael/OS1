@@ -126,6 +126,7 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     return new ChmodCommand(cmd_line);
   }
    
+  
   return nullptr;
 }
 
@@ -136,3 +137,12 @@ void SmallShell::executeCommand(const char *cmd_line) {
   // cmd->execute();
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
+
+string SmallShell::GetPrompt(){
+  return this->prompt;
+}
+
+void SmallShell::SetPrompt(string newprompt){
+  this->prompt = newprompt;
+}
+
