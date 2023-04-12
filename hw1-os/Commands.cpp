@@ -77,6 +77,17 @@ void _removeBackgroundSign(char* cmd_line) {
   cmd_line[str.find_last_not_of(WHITESPACE, idx) + 1] = 0;
 }
 
+//-----------------------Built in commands------------------------------------------------------------------------
+ShowPidCommand::ShowPidCommand(const char* cmd_line)
+{
+// TODO add constructor here
+}
+
+void ShowPidCommand::execute()
+{
+  std::cout << "smash pid is "+ getpid();
+}
+
 // TODO: Add your implementation for classes in Commands.h 
 
 SmallShell::SmallShell() {

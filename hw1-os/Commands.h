@@ -9,6 +9,9 @@
 class Command {
 // TODO: Add your data members
  public:
+ const char* command_line ;
+
+ public:
   Command(const char* cmd_line);
   virtual ~Command();
   virtual void execute() = 0;
@@ -47,6 +50,16 @@ class RedirectionCommand : public Command {
   //void prepare() override;
   //void cleanup() override;
 };
+
+
+//-------------------------------------Built in simple commands-----------------------------------------------
+
+// tali added for first chptompt command (warm up)
+/*class ChpromptCommand : public BuiltInCommand {
+  public:
+  ChpromptCommand()
+
+}*/
 
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
