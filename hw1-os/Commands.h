@@ -55,11 +55,12 @@ class RedirectionCommand : public Command {
 //-------------------------------------Built in simple commands-----------------------------------------------
 
 // tali added for first chptompt command (warm up)
-/*class ChpromptCommand : public BuiltInCommand {
+class  ChpromptCommand : public BuiltInCommand{
   public:
-  ChpromptCommand()
-
-}*/
+  explicit ChpromptCommand(const char* cmd_line);
+  virtual ~ChpromptCommand(){}
+  void execute() override;
+};
 
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
