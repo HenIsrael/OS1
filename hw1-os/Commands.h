@@ -206,3 +206,8 @@ class SmallShell {
 };
 
 #endif //SMASH_COMMAND_H_
+
+#ifndef EXTRA
+#define EXTRA
+void freeArgs(char ** args, int len);
+#endif // EXTRA

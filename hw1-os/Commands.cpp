@@ -78,6 +78,8 @@ void _removeBackgroundSign(char* cmd_line) {
   cmd_line[str.find_last_not_of(WHITESPACE, idx) + 1] = 0;
 }
 //-----------------------Helper Functions-------------------------------------------------------------------------
+/*
+
 static vector<string> command_line_decoder(const char* cmd_line){
   string cmd_s = _trim(string(cmd_line));
 	vector<string> command;
@@ -91,6 +93,7 @@ static vector<string> command_line_decoder(const char* cmd_line){
   return command;
 
 }
+*/
 
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
@@ -99,7 +102,9 @@ void ChpromptCommand::execute(){
     smash.SetPrompt("smash> ");
   }
   else{
-    
+        string newPromptName = this->params.at(0);
+        newPromptName.append("> ");
+        smash.SetPrompt(newPromptName);
   }
 
    
@@ -123,15 +128,20 @@ Command::Command(const char* cmd_line){
   strcpy(new_command_line, cmd_line);
   this->command_line = new_command_line;
 
-  vector<string> command = command_line_decoder(cmd_line);
-    for (unsigned int i = 1; i < command.size(); i++) {
-      this->params.push_back(command[i]);
-    }
+  char ** args = (char**)malloc(sizeof(char*) * MAX_ARGS);
+  int num_of_args = _parseCommandLine(cmd_line, args);
 
+  
+  for(unsigned int i = 1; i <= num_of_args; i++) {
+    this->params.push_back(args[i]);
+  }
+
+  freeArgs(args, MAX_ARGS);
 }
-Command::~Command(){ delete this->command_line;}
 
+Command::~Command(){delete this->command_line;}  
 
+  
 SmallShell::SmallShell() {
 // TODO: add your implementation
 }
@@ -188,3 +198,15 @@ void SmallShell::SetPrompt(string newprompt){
   this->prompt = newprompt;
 }
 
+void freeArgs(char ** args, int len){
+  if(!args)
+    return;
+  for (int i = 0; i < len; ++i)
+  {
+    if(!args[i])
+        continue;
+    free(args[i]);
+    args[i] = NULL;
+  }
+  free(args);
+}
