@@ -9,6 +9,7 @@
 
 using namespace std;
 
+extern SmallShell &smash;
 const std::string WHITESPACE = " \n\r\t\f\v";
 
 #if 0
@@ -94,9 +95,14 @@ static vector<string> command_line_decoder(const char* cmd_line){
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
 void ChpromptCommand::execute(){
-  /// check if none params then do nothing
-  // else:
-  string 
+  if (this->params.empty()){
+    smash.SetPrompt("smash> ");
+  }
+  else{
+    
+  }
+
+   
 }
 ShowPidCommand::ShowPidCommand(const char* cmd_line)
 {
