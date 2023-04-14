@@ -23,6 +23,7 @@ class Command {
   //virtual void prepare();
   //virtual void cleanup();
   // TODO: Add your extra methods if needed
+  const char* getCommandLine() const;
 };
 
 class BuiltInCommand : public Command {
@@ -200,8 +201,8 @@ class SmallShell {
   ~SmallShell();
   void executeCommand(const char* cmd_line);
   // TODO: add extra methods as needed
-  string GetPrompt();
-  void SetPrompt(string prompt);
+  string getPrompt();
+  void setPrompt(string prompt);
 
 };
 
