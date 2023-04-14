@@ -94,34 +94,21 @@ static vector<string> command_line_decoder(const char* cmd_line){
 
 }
 */
-
-//-----------------------Built in commands------------------------------------------------------------------------
-ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
-void ChpromptCommand::execute(){
-  if (this->params.empty()){
-    smash.SetPrompt("smash> ");
+void freeArgs(char ** args, int len){
+  if(!args)
+    return;
+  for (int i = 0; i < len; ++i)
+  {
+    if(!args[i])
+        continue;
+    free(args[i]);
+    args[i] = NULL;
   }
-  else{
-        string newPromptName = this->params.at(0);
-        newPromptName.append("> ");
-        smash.SetPrompt(newPromptName);
-  }
-
-   
-}
-ShowPidCommand::ShowPidCommand(const char* cmd_line)
-{
-// TODO add constructor here
-}
-
-void ShowPidCommand::execute()
-{
-  std::cout << "smash pid is "+ getpid();
+  free(args);
 }
 
 // TODO: Add your implementation for classes in Commands.h 
 //-----------------------Classes code implementation----------------------------------------------------------------
-
 Command::Command(const char* cmd_line){
   int len_cmd_line = strlen(cmd_line);
   char* new_command_line = new char[len_cmd_line + 1];
@@ -139,7 +126,13 @@ Command::Command(const char* cmd_line){
   freeArgs(args, MAX_ARGS);
 }
 
-Command::~Command(){delete this->command_line;}  
+Command::~Command(){
+  delete this->command_line;
+}
+const char* Command::getCommandLine() const{
+  return this->command_line;
+}
+BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
   
 SmallShell::SmallShell() {
@@ -190,23 +183,34 @@ void SmallShell::executeCommand(const char *cmd_line) {
   // Please note that you must fork smash process for some commands (e.g., external commands....)
 }
 
-string SmallShell::GetPrompt(){
+string SmallShell::getPrompt(){
   return this->prompt;
 }
 
-void SmallShell::SetPrompt(string newprompt){
+void SmallShell::setPrompt(string newprompt){
   this->prompt = newprompt;
 }
-
-void freeArgs(char ** args, int len){
-  if(!args)
-    return;
-  for (int i = 0; i < len; ++i)
-  {
-    if(!args[i])
-        continue;
-    free(args[i]);
-    args[i] = NULL;
+//-----------------------Built in commands------------------------------------------------------------------------
+ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
+void ChpromptCommand::execute(){
+  if (this->params.empty()){
+    smash.setPrompt("smash> ");
   }
-  free(args);
+  else{
+        string newPromptName = this->params.at(0);
+        newPromptName.append("> ");
+        smash.setPrompt(newPromptName);
+  }   
 }
+
+ShowPidCommand::ShowPidCommand(const char* cmd_line)
+{
+// TODO add constructor here
+}
+
+void ShowPidCommand::execute()
+{
+  std::cout << "smash pid is "+ getpid();
+}
+
+
