@@ -2,15 +2,20 @@
 #define SMASH_COMMAND_H_
 
 #include <vector>
+#include <string>
+
+using std::vector;
+using std::string;
 
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
 
 class Command {
 // TODO: Add your data members
- public:
- const char* command_line ;
-
+ protected:
+  const char* command_line ;
+  vector<string> params;
+ 
  public:
   Command(const char* cmd_line);
   virtual ~Command();
@@ -18,6 +23,7 @@ class Command {
   //virtual void prepare();
   //virtual void cleanup();
   // TODO: Add your extra methods if needed
+  const char* getCommandLine() const;
 };
 
 class BuiltInCommand : public Command {
@@ -54,12 +60,12 @@ class RedirectionCommand : public Command {
 
 //-------------------------------------Built in simple commands-----------------------------------------------
 
-// tali added for first chptompt command (warm up)
-/*class ChpromptCommand : public BuiltInCommand {
+class ChpromptCommand : public BuiltInCommand{
   public:
-  ChpromptCommand()
-
-}*/
+    explicit ChpromptCommand(const char* cmd_line);
+    virtual ~ChpromptCommand(){}
+    void execute() override;
+};
 
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
@@ -181,6 +187,7 @@ class SmallShell {
  private:
   // TODO: Add your data members
   SmallShell();
+  string prompt = "smash> ";
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -194,6 +201,14 @@ class SmallShell {
   ~SmallShell();
   void executeCommand(const char* cmd_line);
   // TODO: add extra methods as needed
+  string getPrompt();
+  void setPrompt(string prompt);
+
 };
 
 #endif //SMASH_COMMAND_H_
+
+#ifndef EXTRA
+#define EXTRA
+void freeArgs(char ** args, int len);
+#endif // EXTRA
