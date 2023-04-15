@@ -15,6 +15,10 @@ class Command {
  protected:
   const char* command_line ;
   vector<string> params;
+  bool external = false;
+  bool stopped = false;
+  bool background = false;
+  bool foreground= false;
  
  public:
   Command(const char* cmd_line);
@@ -102,8 +106,32 @@ class JobsList {
  public:
   class JobEntry {
    // TODO: Add your data members
+  private:
+    int job_id;
+    int pid;
+    time_t start;
+    Command* command;
+
+  public:
+    JobEntry(int jobId, int pid, Command* cmd);
+    ~JobEntry(){}
+    int getJobId() const;
+    void setJobId(int JobId);
+    int getPid() const;
+    void setPid(int pid);
+    time_t getTimeCommand() const;
+    void setTimeCommand(time_t time);
+    const char* getCommand() const;
+    void deleteCommand();
+    bool isStopped() const;
+    void setStopped(bool stopped);
+    bool isBackground() const;
+    void setBackground(bool mode);
   };
- // TODO: Add your data members
+
+ private:
+  // TODO: Add your data members
+
  public:
   JobsList();
   ~JobsList();
