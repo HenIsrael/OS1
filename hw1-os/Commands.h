@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <time.h>
 
 using std::vector;
 using std::string;
@@ -28,6 +30,11 @@ class Command {
   //virtual void cleanup();
   // TODO: Add your extra methods if needed
   const char* getCommandLine() const;
+  bool isStopped() const;
+  void setStopped(bool stopped);
+  bool isBackground() const;
+  void setBackground(bool mode);
+  bool isExternal() const;
 };
 
 class BuiltInCommand : public Command {
@@ -131,6 +138,9 @@ class JobsList {
 
  private:
   // TODO: Add your data members
+  map<int, JobEntry> run_jobs;
+  int max_from_jobs;
+  int max_from_stopped;
 
  public:
   JobsList();
@@ -144,6 +154,14 @@ class JobsList {
   JobEntry * getLastJob(int* lastJobId);
   JobEntry *getLastStoppedJob(int *jobId);
   // TODO: Add extra methods or modify exisitng ones as needed
+  int getMaxFromJobs() const;
+  void setMaxFromJobs(int max_job_id);
+  int getMaxFromStoppedJobs() const;
+  void SetMaxFromStoppedJobs(int max_stopped_job_id);
+  int MaxJobInMap();
+  int getJobIdByPid(int pid);
+  void ChangeLastStoppedJob();
+  const std::map<int, JobEntry> &get_run_jobs() const;
 };
 
 class JobsCommand : public BuiltInCommand {
