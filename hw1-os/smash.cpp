@@ -5,7 +5,7 @@
 #include "Commands.h"
 #include "signals.h"
 
-
+SmallShell& smash = SmallShell::getInstance();
 
 int main(int argc, char* argv[]) {
     if(signal(SIGTSTP , ctrlZHandler)==SIG_ERR) {
@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     }
 
     //TODO: setup sig alarm handler
-    SmallShell& smash = SmallShell::getInstance();
+    
 
     
     while(true) {
