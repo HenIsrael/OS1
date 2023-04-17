@@ -9,18 +9,22 @@
 using std::vector;
 using std::string;
 
+using namespace std;
+
 #define COMMAND_ARGS_MAX_LENGTH (200)
 #define COMMAND_MAX_ARGS (20)
+#define ERROR (-1)
 
 class Command {
 // TODO: Add your data members
  protected:
   const char* command_line ;
-  vector<string> params;
+  vector<char*> params; 
   bool external = false;
   bool stopped = false;
   bool background = false;
   bool foreground= false;
+
  
  public:
   Command(const char* cmd_line);
@@ -35,6 +39,9 @@ class Command {
   bool isBackground() const;
   void setBackground(bool mode);
   bool isExternal() const;
+
+  //TODO: HEN add getters and setters!:) 
+
 };
 
 class BuiltInCommand : public Command {
@@ -80,9 +87,15 @@ class ChpromptCommand : public BuiltInCommand{
 
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
+private:
+  char* current_path;
+  char* next_path;
+public:
   ChangeDirCommand(const char* cmd_line, char** plastPwd);
   virtual ~ChangeDirCommand() {}
   void execute() override;
+
+// TODO : TALI add getters setters !:) 
 };
 
 class GetCurrDirCommand : public BuiltInCommand {
@@ -234,6 +247,7 @@ class SmallShell {
   // TODO: Add your data members
   SmallShell();
   string prompt = "smash> ";
+  char** lastPwd;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -249,6 +263,7 @@ class SmallShell {
   // TODO: add extra methods as needed
   string getPrompt();
   void setPrompt(string prompt);
+  //  TODO: TALI  add getters setters here!:)
 
 };
 
