@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <time.h>
 
 using std::vector;
 using std::string;
@@ -15,6 +17,10 @@ class Command {
  protected:
   const char* command_line ;
   vector<string> params;
+  bool external = false;
+  bool stopped = false;
+  bool background = false;
+  bool foreground= false;
  
  public:
   Command(const char* cmd_line);
@@ -24,6 +30,11 @@ class Command {
   //virtual void cleanup();
   // TODO: Add your extra methods if needed
   const char* getCommandLine() const;
+  bool isStopped() const;
+  void setStopped(bool stopped);
+  bool isBackground() const;
+  void setBackground(bool mode);
+  bool isExternal() const;
 };
 
 class BuiltInCommand : public Command {
@@ -102,8 +113,35 @@ class JobsList {
  public:
   class JobEntry {
    // TODO: Add your data members
+  private:
+    int job_id;
+    int pid;
+    time_t start;
+    Command* command;
+
+  public:
+    JobEntry(int jobId, int pid, Command* cmd);
+    ~JobEntry(){}
+    int getJobId() const;
+    void setJobId(int JobId);
+    int getPid() const;
+    void setPid(int pid);
+    time_t getTimeCommand() const;
+    void setTimeCommand(time_t time);
+    const char* getCommand() const;
+    void deleteCommand();
+    bool isStopped() const;
+    void setStopped(bool stopped);
+    bool isBackground() const;
+    void setBackground(bool mode);
   };
- // TODO: Add your data members
+
+ private:
+  // TODO: Add your data members
+  map<int, JobEntry> run_jobs;
+  int max_from_jobs;
+  int max_from_stopped;
+
  public:
   JobsList();
   ~JobsList();
@@ -116,6 +154,14 @@ class JobsList {
   JobEntry * getLastJob(int* lastJobId);
   JobEntry *getLastStoppedJob(int *jobId);
   // TODO: Add extra methods or modify exisitng ones as needed
+  int getMaxFromJobs() const;
+  void setMaxFromJobs(int max_job_id);
+  int getMaxFromStoppedJobs() const;
+  void SetMaxFromStoppedJobs(int max_stopped_job_id);
+  int MaxJobInMap();
+  int getJobIdByPid(int pid);
+  void ChangeLastStoppedJob();
+  const std::map<int, JobEntry> &get_run_jobs() const;
 };
 
 class JobsCommand : public BuiltInCommand {

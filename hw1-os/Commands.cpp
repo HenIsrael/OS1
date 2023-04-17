@@ -115,7 +115,7 @@ Command::Command(const char* cmd_line){
   strcpy(new_command_line, cmd_line);
   this->command_line = new_command_line;
 
-  char ** args = (char**)malloc(sizeof(char*) * MAX_ARGS);
+  char ** args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
   int num_of_args = _parseCommandLine(cmd_line, args);
 
   
@@ -123,7 +123,7 @@ Command::Command(const char* cmd_line){
     this->params.push_back(args[i]);
   }
 
-  freeArgs(args, MAX_ARGS);
+  freeArgs(args, COMMAND_MAX_ARGS);
 }
 
 Command::~Command(){
@@ -167,8 +167,13 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
+
   if (firstWord.compare("chprompt") == 0) {
     return new ChmodCommand(cmd_line);
+  }
+
+  if (firstWord.compare("pwd") == 0) {
+    return new GetCurrDirCommand(cmd_line);
   }
    
   
@@ -215,6 +220,19 @@ ShowPidCommand::ShowPidCommand(const char* cmd_line)
 void ShowPidCommand::execute()
 {
   std::cout << "smash pid is "+ getpid();
+}
+
+GetCurrDirCommand::GetCurrDirCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
+void GetCurrDirCommand::execute(){
+  char* path = getcwd(NULL,0);
+  if(!path){
+    perror("smash error: getcwd failed");
+  }
+  else{
+    cout << path <<endl;
+  }
+
+  free(path);
 }
 
 
