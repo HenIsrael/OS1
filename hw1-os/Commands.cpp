@@ -118,9 +118,9 @@ Command::Command(const char* cmd_line){
   char ** args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
   int num_of_args = _parseCommandLine(cmd_line, args);
 
-  
-  for(unsigned int i = 1; i <= num_of_args; i++) {
-    this->params.push_back(args[i]);
+  for(unsigned int i = 1; i <= num_of_args; i++) { 
+    
+    this->params.push_back(string(args[i]));
   }
 
   freeArgs(args, COMMAND_MAX_ARGS);
@@ -181,9 +181,11 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
+  /*
   else if (firstWord.compare("cd") == 0){
     return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
+  */
    
   
   return nullptr;
@@ -215,8 +217,10 @@ void ChpromptCommand::execute(){
     smash.setPrompt("smash> ");
   }
   else{
+        cout << this->params.at(0);
         string newPromptName = this->params.at(0);
         newPromptName.append("> ");
+        
         smash.setPrompt(newPromptName);
   }   
 }
@@ -240,11 +244,14 @@ void GetCurrDirCommand::execute(){
 
   free(path);
 }
+
+/*
 ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): BuiltInCommand(cmd_line)
 {
   //errors
 
-  char* path = this->params.at(0);
+  string path = this->params.at(0);
+
   if(this->params.size() > 1)
   {
     std::cout << "smash error: cd: too many arguments";
@@ -253,10 +260,12 @@ ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): Built
   {
     std::cout << "smash error: cd: OLDPWD not set";
   }
+  
+  
   else
   {
 
-    getcwd(current_path ,COMMAND_ARGS_MAX_LENGTH);
+    getcwd(current_path.c_str() ,COMMAND_ARGS_MAX_LENGTH);
     if(path == "-")
     {
       next_path = *plastPwd;
@@ -266,23 +275,26 @@ ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): Built
       next_path = path;
     }
     *plastPwd = current_path;
-  } 
+  }
+
 }
 
-/*
+
 ChangeDirCommand::~ChangeDirCommand()
 {
   delete current_path;
   delete next_path; 
 }
-*/
+
 
 void ChangeDirCommand::execute()
 {
-  if(chdir(next_path) == ERROR)
+  if(chdir(next_path.c_str()) == ERROR)
     {
       perror("OLDPWD not set");
     }
 }
 
+
+*/
 

@@ -19,7 +19,7 @@ class Command {
 // TODO: Add your data members
  protected:
   const char* command_line ;
-  vector<char*> params; 
+  vector<string> params; 
   bool external = false;
   bool stopped = false;
   bool background = false;
