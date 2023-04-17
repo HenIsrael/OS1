@@ -137,10 +137,14 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
   
 SmallShell::SmallShell() {
 // TODO: add your implementation
+// TODO- create malloc to adress that will point to null for lastPwd
+lastPwd=new char*;
+*lastPwd=nullptr;
 }
 
 SmallShell::~SmallShell() {
 // TODO: add your implementation
+   delete[] lastPwd; 
 }
 
 /**
@@ -169,11 +173,16 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
 
   if (firstWord.compare("chprompt") == 0) {
-    return new ChmodCommand(cmd_line);
+    return new ChpromptCommand(cmd_line);
   }
-
-  if (firstWord.compare("pwd") == 0) {
+  else if (firstWord.compare("showpid") == 0) {
+    return new ShowPidCommand(cmd_line);
+  }
+  else if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
+  }
+  else if (firstWord.compare("cd") == 0){
+    return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
    
   
@@ -212,14 +221,11 @@ void ChpromptCommand::execute(){
   }   
 }
 
-ShowPidCommand::ShowPidCommand(const char* cmd_line)
-{
-// TODO add constructor here
-}
+ShowPidCommand::ShowPidCommand(const char* cmd_line): BuiltInCommand(cmd_line){}
 
 void ShowPidCommand::execute()
 {
-  std::cout << "smash pid is "+ getpid();
+  std::cout << "smash pid is "+ getpid() << endl;
 }
 
 GetCurrDirCommand::GetCurrDirCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
@@ -233,6 +239,50 @@ void GetCurrDirCommand::execute(){
   }
 
   free(path);
+}
+ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): BuiltInCommand(cmd_line)
+{
+  //errors
+
+  char* path = this->params.at(0);
+  if(this->params.size() > 1)
+  {
+    std::cout << "smash error: cd: too many arguments";
+  }
+  else if(path == "-" && !*plastPwd)
+  {
+    std::cout << "smash error: cd: OLDPWD not set";
+  }
+  else
+  {
+
+    getcwd(current_path ,COMMAND_ARGS_MAX_LENGTH);
+    if(path == "-")
+    {
+      next_path = *plastPwd;
+    }
+    else
+    {
+      next_path = path;
+    }
+    *plastPwd = current_path;
+  } 
+}
+
+/*
+ChangeDirCommand::~ChangeDirCommand()
+{
+  delete current_path;
+  delete next_path; 
+}
+*/
+
+void ChangeDirCommand::execute()
+{
+  if(chdir(next_path) == ERROR)
+    {
+      perror("OLDPWD not set");
+    }
 }
 
 
