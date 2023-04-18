@@ -179,6 +179,8 @@ class JobsList {
 
 class JobsCommand : public BuiltInCommand {
  // TODO: Add your data members
+ private:
+  JobsList* jobs_list;
  public:
   JobsCommand(const char* cmd_line, JobsList* jobs);
   virtual ~JobsCommand() {}
@@ -246,6 +248,7 @@ class SmallShell {
  private:
   // TODO: Add your data members
   SmallShell();
+  JobsList jobs;
   string prompt = "smash> ";
   char** lastPwd;
  public:
@@ -263,6 +266,7 @@ class SmallShell {
   // TODO: add extra methods as needed
   string getPrompt();
   void setPrompt(string prompt);
+  JobsList* getJobsList();
   //  TODO: TALI  add getters setters here!:)
 
 };
@@ -272,4 +276,5 @@ class SmallShell {
 #ifndef EXTRA
 #define EXTRA
 void freeArgs(char ** args, int len);
+
 #endif // EXTRA
