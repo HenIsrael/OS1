@@ -37,11 +37,8 @@ class Command {
   bool isStopped() const;
   void setStopped(bool stopped);
   bool isBackground() const;
-  void setBackground(bool mode);
+  void setBackground(bool background);
   bool isExternal() const;
-
-  //TODO: HEN add getters and setters!:) 
-
 };
 
 class BuiltInCommand : public Command {
@@ -146,7 +143,7 @@ class JobsList {
     bool isStopped() const;
     void setStopped(bool stopped);
     bool isBackground() const;
-    void setBackground(bool mode);
+    void setBackground(bool background);
   };
 
  private:

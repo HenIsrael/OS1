@@ -133,6 +133,24 @@ Command::~Command(){
 const char* Command::getCommandLine() const{
   return this->command_line;
 }
+bool Command::isStopped() const{
+  return this->stopped;
+}
+void Command::setStopped(bool stopped){
+  this->stopped = stopped;
+}
+bool Command::isBackground() const {
+    return this->background;
+}
+void Command::setBackground(bool background) {
+    this->background = background;
+}
+bool Command::isExternal() const {
+    return this->external;
+}
+
+
+
 BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
 // TODO: [1] - class ExternalCommand
@@ -173,16 +191,16 @@ void JobsList::JobEntry::deleteCommand(){
   delete this->command;
 }
 bool JobsList::JobEntry::isStopped() const{
-  return this->command->isStopped();                  // TODO: add fun isStopped in class Command
+  return this->command->isStopped();                  
 }
 void JobsList::JobEntry::setStopped(bool stopped){
-  return this->command->setStopped(stopped);          // TODO: add fun setStopped in class Command
+  return this->command->setStopped(stopped);          
 }
 bool JobsList::JobEntry::isBackground() const{
-  return command->isBackground();                     // TODO: add fun isBackground in class Command
+  return command->isBackground();                    
 }
-void JobsList::JobEntry::setBackground(bool mode){
-  return this->command->setBackground(mode);          // TODO: add fun isBackground in class Command
+void JobsList::JobEntry::setBackground(bool background){
+  return this->command->setBackground(background);          
 }
 
 
