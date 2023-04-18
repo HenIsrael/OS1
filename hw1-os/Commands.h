@@ -88,8 +88,8 @@ class ChpromptCommand : public BuiltInCommand{
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
 private:
-  char* current_path;
-  char* next_path;
+  std::string current_path;
+  std::string next_path;
 public:
   ChangeDirCommand(const char* cmd_line, char** plastPwd);
   virtual ~ChangeDirCommand() {}
@@ -263,7 +263,8 @@ class SmallShell {
   // TODO: add extra methods as needed
   string getPrompt();
   void setPrompt(string prompt);
-  //  TODO: TALI  add getters setters here!:)
+  char** getLastPwd();
+  void setLastPwd(char *lastPwd);
 
 };
 

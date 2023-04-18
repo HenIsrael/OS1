@@ -182,11 +182,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("pwd") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
-  /*
   else if (firstWord.compare("cd") == 0){
     return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
-  */
    
   
   return nullptr;
@@ -211,6 +209,14 @@ string SmallShell::getPrompt(){
 void SmallShell::setPrompt(string newprompt){
   this->prompt = newprompt;
 }
+
+char** SmallShell::getLastPwd(){
+  return this->lastPwd;
+}
+
+void SmallShell::setLastPwd(char *lastPwd){
+  this->lastPwd = &lastPwd;
+}
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
 void ChpromptCommand::execute(){
@@ -229,7 +235,7 @@ ShowPidCommand::ShowPidCommand(const char* cmd_line): BuiltInCommand(cmd_line){}
 
 void ShowPidCommand::execute()
 {
-  std::cout << "smash pid is "+ getpid() << endl;
+  std::cout << "smash pid is "<< ::getpid() << endl;
 }
 
 GetCurrDirCommand::GetCurrDirCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
@@ -245,46 +251,57 @@ void GetCurrDirCommand::execute(){
   free(path);
 }
 
-/*
+char* convert_string_to_char (std::string str)
+{
+  const char* temp =  str.c_str();
+  //new char* 
+
+}
+
+
 ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): BuiltInCommand(cmd_line)
 {
   //errors
 
-  string path = this->params.at(0);
-
+  std::string path = this->params.at(0);
+  //std::cout << path <<endl ;
+  //TO DO add cd with no params
   if(this->params.size() > 1)
   {
-    std::cout << "smash error: cd: too many arguments";
+    std::cout << "smash error: cd: too many arguments" <<endl ;
   }
   else if(path == "-" && !*plastPwd)
   {
-    std::cout << "smash error: cd: OLDPWD not set";
-  }
-  
-  
+    std::cout << "smash error: cd: OLDPWD not set" <<endl ;
+  } 
   else
   {
-
-    getcwd(current_path.c_str() ,COMMAND_ARGS_MAX_LENGTH);
+    char tmp[COMMAND_ARGS_MAX_LENGTH];
+    getcwd(tmp, COMMAND_ARGS_MAX_LENGTH);
+    //getcwd(current_path.c_str() ,COMMAND_ARGS_MAX_LENGTH);
+    current_path = tmp;
+    std::cout <<"current path is "<< current_path <<endl ;
+    //std::cout <<"plastPwd is "<< *plastPwd <<endl ;
     if(path == "-")
     {
-      next_path = *plastPwd;
+      next_path = *(smash.getLastPwd());
     }
     else
     {
       next_path = path;
     }
-    *plastPwd = current_path;
+    smash.setLastPwd( tmp );
+    delete[]tmp;
   }
 
 }
 
-
+/*
 ChangeDirCommand::~ChangeDirCommand()
 {
   delete current_path;
   delete next_path; 
-}
+}*/
 
 
 void ChangeDirCommand::execute()
@@ -296,5 +313,4 @@ void ChangeDirCommand::execute()
 }
 
 
-*/
 
