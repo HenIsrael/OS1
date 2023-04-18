@@ -118,12 +118,13 @@ Command::Command(const char* cmd_line){
   char ** args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
   int num_of_args = _parseCommandLine(cmd_line, args);
 
-  for(unsigned int i = 1; i <= num_of_args; i++) { 
+  for(unsigned int i = 1; i < num_of_args; i++) { 
     
     this->params.push_back(string(args[i]));
   }
-
+  
   freeArgs(args, COMMAND_MAX_ARGS);
+  
 }
 
 Command::~Command(){
@@ -217,7 +218,6 @@ void ChpromptCommand::execute(){
     smash.setPrompt("smash> ");
   }
   else{
-        cout << this->params.at(0);
         string newPromptName = this->params.at(0);
         newPromptName.append("> ");
         
