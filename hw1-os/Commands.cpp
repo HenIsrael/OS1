@@ -135,7 +135,57 @@ const char* Command::getCommandLine() const{
 }
 BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
-  
+// TODO: [1] - class ExternalCommand
+//       [2] - class PipeCommand
+//       [3] - class RedirectionCommand
+
+JobsList::JobEntry::JobEntry(int jobId, int pid, Command* cmd) : command(cmd){
+  this->job_id = jobId;
+  this->pid = pid;
+  this->start = time(nullptr);
+  if(this->start == ERROR){
+    perror("smash error: time failed");
+  }
+}
+
+int JobsList::JobEntry::getJobId() const{
+  return this->job_id;
+}
+void JobsList::JobEntry::setJobId(int JobId){
+  this->job_id = JobId;
+}
+int JobsList::JobEntry::getPid() const{
+  return this->pid;
+}
+void JobsList::JobEntry::setPid(int pid){
+  this->pid = pid;
+}
+time_t JobsList::JobEntry::getTimeCommand() const{
+  return this->start;
+}
+void JobsList::JobEntry::setTimeCommand(time_t time){
+  this->start = time;
+}
+const char* JobsList::JobEntry::getCommand() const{
+  return this->command->getCommandLine();
+}
+void JobsList::JobEntry::deleteCommand(){
+  delete this->command;
+}
+bool JobsList::JobEntry::isStopped() const{
+  return this->command->isStopped();                  // TODO: add fun isStopped in class Command
+}
+void JobsList::JobEntry::setStopped(bool stopped){
+  return this->command->setStopped(stopped);          // TODO: add fun setStopped in class Command
+}
+bool JobsList::JobEntry::isBackground() const{
+  return command->isBackground();                     // TODO: add fun isBackground in class Command
+}
+void JobsList::JobEntry::setBackground(bool mode){
+  return this->command->setBackground(mode);          // TODO: add fun isBackground in class Command
+}
+
+
 SmallShell::SmallShell() {
 // TODO: add your implementation
 // TODO- create malloc to adress that will point to null for lastPwd
@@ -187,6 +237,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
   */
+  else if (firstWord.compare("jobs") == 0) {
+    return new JobsCommand(cmd_line, smash.getJobsList());
+  }
    
   
   return nullptr;
@@ -210,6 +263,10 @@ string SmallShell::getPrompt(){
 
 void SmallShell::setPrompt(string newprompt){
   this->prompt = newprompt;
+}
+
+JobsList* SmallShell::getJobsList(){
+  return &(this->jobs);
 }
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
@@ -297,4 +354,11 @@ void ChangeDirCommand::execute()
 
 
 */
+
+JobsCommand::JobsCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line), jobs_list(jobs) {}
+void JobsCommand::execute(){
+  JobsList* list = smash.getJobsList();
+  list->removeFinishedJobs();
+  list->printJobsList();
+}
 
