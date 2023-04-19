@@ -164,6 +164,7 @@ class JobsList {
   JobEntry * getLastJob(int* lastJobId);
   JobEntry *getLastStoppedJob(int *jobId);
   // TODO: Add extra methods or modify exisitng ones as needed
+  int addJob(int pid, Command* cmd, bool stopped);
   int getMaxFromJobs() const;
   void setMaxFromJobs(int max_job_id);
   int getMaxFromStoppedJobs() const;
