@@ -15,6 +15,8 @@ using namespace std;
 #define COMMAND_MAX_ARGS (20)
 #define ERROR (-1)
 
+enum status_cd {too_many_arg , no_args, back , backdotdot , ok };
+
 class Command {
 // TODO: Add your data members
  protected:
@@ -88,8 +90,10 @@ class ChpromptCommand : public BuiltInCommand{
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
 private:
-  std::string current_path;
-  std::string next_path;
+  status_cd status;
+  std::string current_path = "";
+  std::string next_path = "";
+  std::string m_plastPwd = "";
 public:
   ChangeDirCommand(const char* cmd_line, char** plastPwd);
   virtual ~ChangeDirCommand() {}

@@ -251,65 +251,79 @@ void GetCurrDirCommand::execute(){
   free(path);
 }
 
-char* convert_string_to_char (std::string str)
-{
-  const char* temp =  str.c_str();
-  //new char* 
-
-}
-
 
 ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): BuiltInCommand(cmd_line)
 {
-  //errors
-
+  if(this->params.size() == 0)
+  {
+    this->status = no_args;
+    return;
+  }
   std::string path = this->params.at(0);
-  //std::cout << path <<endl ;
-  //TO DO add cd with no params
+  char tmp[COMMAND_ARGS_MAX_LENGTH];
+  getcwd(tmp, COMMAND_ARGS_MAX_LENGTH);
+  current_path = tmp;
+  next_path = path;
+  if(*plastPwd)
+  {
+    std::string s(*plastPwd);
+    this->m_plastPwd = s;
+  }
   if(this->params.size() > 1)
   {
-    std::cout << "smash error: cd: too many arguments" <<endl ;
+    this->status = too_many_arg;
   }
-  else if(path == "-" && !*plastPwd)
+  else if(path == "-")
   {
-    std::cout << "smash error: cd: OLDPWD not set" <<endl ;
+    this->status = back;
   } 
   else
   {
-    char tmp[COMMAND_ARGS_MAX_LENGTH];
-    getcwd(tmp, COMMAND_ARGS_MAX_LENGTH);
-    //getcwd(current_path.c_str() ,COMMAND_ARGS_MAX_LENGTH);
-    current_path = tmp;
-    std::cout <<"current path is "<< current_path <<endl ;
-    //std::cout <<"plastPwd is "<< *plastPwd <<endl ;
-    if(path == "-")
-    {
-      next_path = *(smash.getLastPwd());
-    }
-    else
-    {
-      next_path = path;
-    }
-    smash.setLastPwd( tmp );
-    delete[]tmp;
+    this->status = ok ; 
   }
-
+  delete[] tmp;
 }
 
-/*
-ChangeDirCommand::~ChangeDirCommand()
-{
-  delete current_path;
-  delete next_path; 
-}*/
-
+// ChangeDirCommand::~ChangeDirCommand()
+// {
+//   delete plastPwd;
+// }
 
 void ChangeDirCommand::execute()
 {
-  if(chdir(next_path.c_str()) == ERROR)
+  if(this->status == no_args)
+  {
+    return;
+  }
+  else if(this->status == too_many_arg)
+  {
+    std::cerr << "smash error: cd: too many arguments" <<endl ;
+    return;
+  }
+  else if(this->status == back)
+  {
+    if(this->m_plastPwd == "")
     {
-      perror("OLDPWD not set");
+      std::cerr << "smash error: cd: OLDPWD not set" <<endl ;
+      return;
     }
+    else
+    {
+      next_path= m_plastPwd;
+    }
+  } 
+  if(chdir(next_path.c_str()) == ERROR)
+  {
+    perror("chdir failed");
+  }
+  else
+  {
+    char* tmp = nullptr;
+    strcpy(tmp, current_path.c_str());
+    smash.setLastPwd( tmp );
+    delete tmp;
+  }
+
 }
 
 
