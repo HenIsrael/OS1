@@ -157,6 +157,8 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 //       [2] - class PipeCommand
 //       [3] - class RedirectionCommand
 
+
+
 JobsList::JobEntry::JobEntry(int jobId, int pid, Command* cmd) : command(cmd){
   this->job_id = jobId;
   this->pid = pid;
@@ -172,7 +174,7 @@ int JobsList::JobEntry::getJobId() const{
 void JobsList::JobEntry::setJobId(int JobId){
   this->job_id = JobId;
 }
-int JobsList::JobEntry::getPid() const{
+pid_t JobsList::JobEntry::getPid() const{
   return this->pid;
 }
 void JobsList::JobEntry::setPid(int pid){
@@ -203,10 +205,118 @@ void JobsList::JobEntry::setBackground(bool background){
   return this->command->setBackground(background);          
 }
 
+// TODO : add class JobsList code here ->
+
+int JobsList::addJob(int pid, Command *cmd, bool stopped) {
+    int new_job_id = getMaxFromJobs();                                           
+    new_job_id += 1;
+    JobEntry new_job(new_job_id, pid, cmd);
+
+    this->run_jobs.insert(std::pair<int, JobEntry>(new_job_id, new_job));
+    setMaxFromJobs(new_job_id);                                                  
+
+    return new_job_id;
+}
+
+int JobsList::getMaxFromJobs() const{
+  return this->max_from_jobs;
+}
+
+void JobsList::setMaxFromJobs(int max_job_id){
+  this->max_from_jobs = max_job_id;
+}
+
+int JobsList::getJobIdByPid(int pid){
+  if(this->run_jobs.size() == 0){
+    return 0;
+  }
+  for(const auto job : this->run_jobs){
+    if(job.second.getPid() == pid){
+      return job.first;
+    }
+  }
+  return 0;
+}
+
+int JobsList::MaxJobInMap(){
+  if (this->run_jobs.size() == 0) {
+      return 0;
+  }
+  int max_job_id = 0;
+  for (const auto &job : this->run_jobs) {
+      if (job.first > max_job_id) {
+        max_job_id = job.first;
+      }
+  }
+
+  return max_job_id;  
+}
+
+void JobsList::removeJobById(int jobId){
+  JobEntry job = this->run_jobs.find(jobId)->second;
+  job.deleteCommand();
+
+  this->run_jobs.erase(jobId);
+  int max_job_id = MaxJobInMap();
+
+  setMaxFromJobs(max_job_id);
+}
+
+void JobsList::removeFinishedJobs(){
+  int status;
+  int child_pid = waitpid(-1, &status, WNOHANG);
+  while (child_pid > 0){
+
+    int job_id = getJobIdByPid(child_pid);
+    if (job_id != 0){
+      removeJobById(job_id);
+    }
+
+    int child_pid = waitpid(-1, &status, WNOHANG);
+  }
+}
+
+void JobsList::printJobsList(){
+  for(auto &job : this->run_jobs){
+    time_t now = time(nullptr);
+    if(now == ERROR){
+      perror("smash error: time failed");
+      return;
+    }
+
+    time_t job_start_time = job.second.getTimeCommand();
+    time_t seconds_elapsed = difftime(now, job_start_time);
+
+    cout << "[" << job.second.getJobId() << "] " << job.second.getCommand() << " : " << job.second.getPid() << " " << seconds_elapsed << " secs";
+    if(job.second.isStopped()){
+      cout << " (stopped)";
+    }
+
+    cout << endl;
+  }
+
+
+}
+
+
+
+
+/*
+TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
+       [*] - void killAllJobs();
+       [*] - JobEntry * getJobById(int jobId);
+       [*] - JobEntry * getLastJob(int* lastJobId);
+       [*] - JobEntry *getLastStoppedJob(int *jobId);
+       [*] - int getMaxFromStoppedJobs() const;
+       [*] - void SetMaxFromStoppedJobs(int max_stopped_job_id);
+       [*] - void ChangeLastStoppedJob();
+       [*] - const std::map<int, JobEntry> &get_run_jobs() const;
+*/
 
 SmallShell::SmallShell() {
 // TODO: add your implementation
 // TODO- create malloc to adress that will point to null for lastPwd
+// TODO - add constructor to jobs
 lastPwd=new char*;
 *lastPwd=nullptr;
 }

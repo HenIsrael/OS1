@@ -134,7 +134,7 @@ class JobsList {
     ~JobEntry(){}
     int getJobId() const;
     void setJobId(int JobId);
-    int getPid() const;
+    pid_t getPid() const;
     void setPid(int pid);
     time_t getTimeCommand() const;
     void setTimeCommand(time_t time);
