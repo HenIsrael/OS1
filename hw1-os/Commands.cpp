@@ -346,7 +346,9 @@ void ForegroundCommand::execute()
   }
   else
   {
-
+    std::cout << this->job->getCommand() << " " << this->job->getPid() <<endl; 
+    kill(this->job->getPid(), SIGCONT);
+    waitpid(getpid());
   }
 
 }
