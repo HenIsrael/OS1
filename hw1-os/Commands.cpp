@@ -254,40 +254,40 @@ void GetCurrDirCommand::execute(){
 
 ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): BuiltInCommand(cmd_line)
 {
+  //std::cout << "plastPwd is " << *plastPwd << endl ;
   if(this->params.size() == 0)
   {
     this->status = no_args;
     return;
   }
+  char* current_path = getcwd(NULL,0);
   std::string path = this->params.at(0);
-  char tmp[COMMAND_ARGS_MAX_LENGTH];
-  getcwd(tmp, COMMAND_ARGS_MAX_LENGTH);
-  current_path = tmp;
-  next_path = path;
-  if(*plastPwd)
-  {
-    std::string s(*plastPwd);
-    this->m_plastPwd = s;
-  }
+  m_next_plastPwd = current_path;
   if(this->params.size() > 1)
   {
     this->status = too_many_arg;
   }
   else if(path == "-")
   {
-    this->status = back;
+    if(!*plastPwd)
+    {
+      status = back_null;
+    }
+    else
+    {
+      status = back ;
+      next_path = *plastPwd ;
+      //std::cout << "back- plastPwd-next path in consructoe is " << next_path << endl ; 
+    }
   } 
   else
   {
     this->status = ok ; 
+    next_path = path ; 
+    std::cout << "ok- plastPwd-next path in consructoe is " << next_path << endl ;
   }
-  delete[] tmp;
 }
 
-// ChangeDirCommand::~ChangeDirCommand()
-// {
-//   delete plastPwd;
-// }
 
 void ChangeDirCommand::execute()
 {
@@ -300,31 +300,55 @@ void ChangeDirCommand::execute()
     std::cerr << "smash error: cd: too many arguments" <<endl ;
     return;
   }
-  else if(this->status == back)
+  else if(this->status == back_null)
   {
-    if(this->m_plastPwd == "")
+    std::cerr << "smash error: cd: OLDPWD not set" <<endl ;
+    return;
+  } 
+  else
+  {
+    std::cout << "next_path is "<< this->next_path << endl;
+    std::cout << "m_next_plastPwd is "<< this->m_next_plastPwd << endl;
+    if(chdir(next_path.c_str()) == ERROR)
     {
-      std::cerr << "smash error: cd: OLDPWD not set" <<endl ;
-      return;
+      perror("chdir failed");
     }
     else
     {
-      next_path= m_plastPwd;
+      std::cout << "good" <<endl ;
+      char* tmp = strdup(m_next_plastPwd.c_str());
+      std::cout << "tmp is" << tmp <<endl ;
+      std::cout << "good" <<endl ;
+      std::cout << "tmp is" << tmp <<endl ;
+
+      smash.setLastPwd( tmp );
+      std::cout << "lastPwd shell" << *(smash.getLastPwd()) <<endl ;
+      std::cout << "good" <<endl ;
+      delete tmp;
+      std::cout << "end" <<endl ;
     }
-  } 
-  if(chdir(next_path.c_str()) == ERROR)
+  }
+}
+
+void ForegroundCommand::execute()
+{
+  if( this->status == no_jobs)
   {
-    perror("chdir failed");
+    std::cerr << "smash error: fg: jobs list is empty" << endl;
+  }
+  else if( this->status == job_not_exist )
+  {
+    std::cerr << "smash error: fg: job-id " << this->job_id_fg << " does not exist" << endl;
+  }
+  else if( this->status == invalid_arguments )
+  {
+    std::cerr << "smash error: fg: invalid arguments" << endl ;
   }
   else
   {
-    char* tmp = nullptr;
-    strcpy(tmp, current_path.c_str());
-    smash.setLastPwd( tmp );
-    delete tmp;
+
   }
 
 }
-
 
 
