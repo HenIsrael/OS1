@@ -195,6 +195,8 @@ class JobsCommand : public BuiltInCommand {
 
 class ForegroundCommand : public BuiltInCommand {
  // TODO: Add your data members
+ private:
+ JobsList* jobs_list;
  public:
   ForegroundCommand(const char* cmd_line, JobsList* jobs);
   virtual ~ForegroundCommand() {}
@@ -282,5 +284,6 @@ class SmallShell {
 #ifndef EXTRA
 #define EXTRA
 void freeArgs(char ** args, int len);
+bool isItNumber(const string &str);
 
 #endif // EXTRA
