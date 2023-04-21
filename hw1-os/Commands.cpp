@@ -107,6 +107,21 @@ void freeArgs(char ** args, int len){
   free(args);
 }
 
+bool isItNumber(const string &str){
+  if (str.empty()){ //TODO: maybe need to check '+'/'-' before is valid ?? 
+    return false;
+  } 
+
+  for(unsigned int i=1; i<str.length(); i++){
+      if(isdigit(str[i]) == 0){
+          return false;
+      }
+  }
+
+  return true;
+}
+
+
 // TODO: Add your implementation for classes in Commands.h 
 //-----------------------Classes code implementation----------------------------------------------------------------
 Command::Command(const char* cmd_line){
@@ -381,7 +396,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("jobs") == 0) {
     return new JobsCommand(cmd_line, smash.getJobsList());
   }
-   
+  else if (firstWord.compare("fg") == 0) {
+    return new ForegroundCommand(cmd_line, smash.getJobsList());
+  }
   
   return nullptr;
 }
@@ -501,5 +518,62 @@ void JobsCommand::execute(){
   JobsList* list = smash.getJobsList();
   list->removeFinishedJobs();
   list->printJobsList();
+}
+
+ForegroundCommand::ForegroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {}
+void ForegroundCommand::execute(){
+  if(this->params.size() >1){
+    cerr << "smash error: fg: invalid arguments" << endl;
+    return;
+  }
+
+  map<int, JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs();
+  int job_id;
+
+  if(this->params.empty()){
+    if(run_jobs.size() == 0){
+      cerr << "smash error: fg: jobs list is empty" << endl;
+      return;
+    }
+    //TODO: maybe need to remove finished jobs before?
+    job_id = this->jobs_list->MaxJobInMap();
+  }
+  else {
+    if(!isItNumber(this->params.at(0))){
+    
+      cerr << "smash error: fg: invalid arguments" << endl;
+      return; 
+    }
+
+    int job_required = stoi(this->params.at(0));
+    this->jobs_list->removeFinishedJobs();
+
+    if(run_jobs.find(job_required) == run_jobs.end()){
+      cerr << "smash error: fg: job-id " << job_required << " does not exist" << endl;
+      return;
+    }
+
+    job_id = job_required;
+  }
+
+  int job_pid = run_jobs.find(job_id)->second.getPid();
+  string command_line = run_jobs.find(job_id)->second.getCommand();
+
+  cout << command_line << " : "  << job_pid << endl;
+
+  run_jobs.find(job_id)->second.setBackground(false);
+  if(killpg(job_pid, SIGCONT) == ERROR){
+    perror("smash error: kill failed");
+    return;
+  }
+
+  run_jobs.find(job_id)->second.setStopped(false);
+  waitpid(job_pid, nullptr, WUNTRACED);
+
+  if(!run_jobs.find(job_id)->second.isStopped()) {
+      this->jobs_list->removeJobById(job_id);
+  }
+
+  this->jobs_list->ChangeLastStoppedJob();
 }
 
