@@ -131,7 +131,7 @@ class JobsList {
 
   public:
     JobEntry(int jobId, int pid, Command* cmd);
-    ~JobEntry(){}
+    ~JobEntry(){};
     int getJobId() const;
     void setJobId(int JobId);
     pid_t getPid() const;
@@ -149,30 +149,38 @@ class JobsList {
  private:
   // TODO: Add your data members
   map<int, JobEntry> run_jobs;
-  int max_from_jobs;
-  int max_from_stopped;
+  int max_from_jobs = 0;
+  int max_from_stopped = 0;
 
  public:
-  JobsList();
-  ~JobsList();
-  void addJob(Command* cmd, bool isStopped = false);
+  JobsList()=default;
+  ~JobsList(){};
+  //void addJob(Command* cmd, bool isStopped = false);
   void printJobsList();
-  void killAllJobs();
+  //void killAllJobs();
   void removeFinishedJobs();
-  JobEntry * getJobById(int jobId);
+  //JobEntry * getJobById(int jobId);
   void removeJobById(int jobId);
-  JobEntry * getLastJob(int* lastJobId);
-  JobEntry *getLastStoppedJob(int *jobId);
+  //JobEntry * getLastJob(int* lastJobId);
+  //JobEntry *getLastStoppedJob(int *jobId);
   // TODO: Add extra methods or modify exisitng ones as needed
   int addJob(int pid, Command* cmd, bool stopped);
   int getMaxFromJobs() const;
   void setMaxFromJobs(int max_job_id);
   int getMaxFromStoppedJobs() const;
-  void SetMaxFromStoppedJobs(int max_stopped_job_id);
+  void setMaxFromStoppedJobs(int max_stopped_job_id);
   int MaxJobInMap();
   int getJobIdByPid(int pid);
   void ChangeLastStoppedJob();
-  const std::map<int, JobEntry> &get_run_jobs() const;
+  const std::map<int, JobEntry> &getRunJobs() const;
+
+  /*
+TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
+       [*] - void killAllJobs();
+       [*] - JobEntry * getJobById(int jobId);
+       [*] - JobEntry * getLastJob(int* lastJobId);
+       [*] - JobEntry *getLastStoppedJob(int *jobId);
+*/
 };
 
 class JobsCommand : public BuiltInCommand {
@@ -248,7 +256,7 @@ class SmallShell {
   SmallShell();
   JobsList jobs;
   string prompt = "smash> ";
-  char** lastPwd;
+  //char** lastPwd;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -259,7 +267,7 @@ class SmallShell {
     // Instantiated on first use.
     return instance;
   }
-  ~SmallShell();
+  ~SmallShell(){}
   void executeCommand(const char* cmd_line);
   // TODO: add extra methods as needed
   string getPrompt();

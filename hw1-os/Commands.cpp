@@ -118,7 +118,7 @@ Command::Command(const char* cmd_line){
   char ** args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
   int num_of_args = _parseCommandLine(cmd_line, args);
 
-  for(unsigned int i = 1; i < num_of_args; i++) { 
+  for(int i = 1; i < num_of_args; i++) { 
     
     this->params.push_back(string(args[i]));
   }
@@ -226,6 +226,14 @@ void JobsList::setMaxFromJobs(int max_job_id){
   this->max_from_jobs = max_job_id;
 }
 
+int JobsList::getMaxFromStoppedJobs() const {
+    return this->max_from_stopped;
+}
+
+void JobsList::setMaxFromStoppedJobs(int max_stopped_job_id) {
+    this->max_from_stopped = max_stopped_job_id;
+}
+
 int JobsList::getJobIdByPid(int pid){
   if(this->run_jobs.size() == 0){
     return 0;
@@ -294,37 +302,42 @@ void JobsList::printJobsList(){
 
     cout << endl;
   }
+}
 
+const map<int, JobsList::JobEntry> &JobsList::getRunJobs() const{
+  return this->run_jobs;
+}
 
+void JobsList::ChangeLastStoppedJob() {
+
+    map<int, JobsList::JobEntry> run_jobs = smash.getJobsList()->getRunJobs();
+    if (run_jobs.size() == 0) {
+        this->max_from_stopped = 0;
+    }
+    int max = 0;
+    for (auto job : run_jobs){
+        if(job.first > max && job.second.isStopped()) {
+            max = job.first;
+        }
+    }
+    this->max_from_stopped  = max;
 }
 
 
-
-
-/*
-TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
-       [*] - void killAllJobs();
-       [*] - JobEntry * getJobById(int jobId);
-       [*] - JobEntry * getLastJob(int* lastJobId);
-       [*] - JobEntry *getLastStoppedJob(int *jobId);
-       [*] - int getMaxFromStoppedJobs() const;
-       [*] - void SetMaxFromStoppedJobs(int max_stopped_job_id);
-       [*] - void ChangeLastStoppedJob();
-       [*] - const std::map<int, JobEntry> &get_run_jobs() const;
-*/
-
-SmallShell::SmallShell() {
+SmallShell::SmallShell() : jobs(JobsList()) {
 // TODO: add your implementation
 // TODO- create malloc to adress that will point to null for lastPwd
 // TODO - add constructor to jobs
-lastPwd=new char*;
-*lastPwd=nullptr;
+//lastPwd=new char*;
+//*lastPwd=nullptr;
 }
 
+/*
 SmallShell::~SmallShell() {
 // TODO: add your implementation
    delete[] lastPwd; 
 }
+*/
 
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
