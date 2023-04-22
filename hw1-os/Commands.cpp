@@ -330,6 +330,7 @@ void ChangeDirCommand::execute()
   }
 }
 
+/*
 ForegroundCommand::ForegroundCommand(const char* cmd_line, JobsList* jobs)
 :BuiltInCommand(cmd_line)
 {
@@ -390,6 +391,6 @@ void ForegroundCommand::execute()
     //smash->getJobesList()->removeJobById(this->job->getPid());
   }
 
-}
+}*/
 
 
