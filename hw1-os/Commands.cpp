@@ -399,6 +399,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("fg") == 0) {
     return new ForegroundCommand(cmd_line, smash.getJobsList());
   }
+  else if (firstWord.compare("bg") == 0) {
+    return new BackgroundCommand(cmd_line, smash.getJobsList());
+  }
   
   return nullptr;
 }
@@ -577,3 +580,69 @@ void ForegroundCommand::execute(){
   this->jobs_list->ChangeLastStoppedJob();
 }
 
+BackgroundCommand::BackgroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {}
+void BackgroundCommand::execute() {
+  if(this->params.size() >1){
+    cerr << "smash error: bg: invalid arguments" << endl;
+    return;
+  }
+  map<int, JobsList::JobEntry> run_jobs=this->jobs_list->getRunJobs();
+  int job_id = 0;
+
+  if(this->params.size() == 0){
+    job_id = this->jobs_list->MaxJobInMap();
+
+    if(job_id == 0){
+      cerr << "smash error: bg: there is no stopped jobs to resume" << endl;
+      return;
+    }
+  }
+
+  else{
+    if(!isItNumber(this->params.at(0))){
+      cerr << "smash error: bg: invalid arguments" << endl;
+      return; 
+    }
+    else {
+      job_id = stoi(this->params.at(0));
+    }
+
+    if(run_jobs.find(job_id) == run_jobs.end()){
+      cerr << "smash error: bg: job-id " << job_id << " does not exist" << endl;
+      return;
+    }
+
+    if(run_jobs.find(job_id)->second.isBackground() && !run_jobs.find(job_id)->second.isStopped()){
+      cerr << "smash error: bg: job-id " << job_id << " is already running in the background" << endl;
+      return;
+    }
+    else if(run_jobs.find(job_id)->second.isBackground() && run_jobs.find(job_id)->second.isStopped()){
+      int job_pid = run_jobs.find(job_id)->second.getPid();
+
+      string command_line = run_jobs.find(job_id)->second.getCommand();
+      cout << command_line << " : "  << job_pid << endl;
+
+      if(killpg(job_pid, SIGCONT) == ERROR){
+        perror("smash error: kill failed");
+        return;
+      }
+
+      run_jobs.at(job_id).setStopped(false);
+      this->jobs_list->ChangeLastStoppedJob();
+      return;
+    }
+  }
+
+  int job_pid = run_jobs.find(job_id)->second.getPid();
+
+  string command_line = run_jobs.find(job_id)->second.getCommand();
+  cout << command_line << " : "  << job_pid << endl;
+
+  if(killpg(job_pid, SIGCONT) == ERROR){
+    perror("smash error: kill failed");
+    return;
+  }
+
+  run_jobs.at(job_id).setStopped(false);
+  this->jobs_list->ChangeLastStoppedJob();
+}
