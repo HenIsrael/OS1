@@ -679,7 +679,23 @@ void KillCommand::execute() {
      return;
   }
 
+  map<int, JobsList::JobEntry> run_jobs=this->jobs_list->getRunJobs();
+  if (run_jobs.find(job_id) == run_jobs.end()){
+      cerr << "smash error: kill: job-id " << job_id << " does not exist" << endl;
+      return;
+  }
 
+  int job_pid = run_jobs.find(job_id)->second.getPid();
+  if(kill(job_pid, abs(sig_num)) == ERROR){
+    perror("smash error: kill failed");
+    return;
+  }
+  else if(abs(sig_num) == 9){
+    this->jobs_list->removeJobById(job_id);
+  }
 
-
+  else if(abs(sig_num) == 19){
+    //TODO : check if is valid command
+  }
+  cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
 }
