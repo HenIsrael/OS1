@@ -107,6 +107,21 @@ void freeArgs(char ** args, int len){
   free(args);
 }
 
+bool isItNumber(const string &str){
+  if (str.empty()){ //TODO: maybe need to check '+'/'-' before is valid ?? 
+    return false;
+  } 
+
+  for(unsigned int i=1; i<str.length(); i++){
+      if(isdigit(str[i]) == 0){
+          return false;
+      }
+  }
+
+  return true;
+}
+
+
 // TODO: Add your implementation for classes in Commands.h 
 //-----------------------Classes code implementation----------------------------------------------------------------
 Command::Command(const char* cmd_line){
@@ -118,7 +133,7 @@ Command::Command(const char* cmd_line){
   char ** args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
   int num_of_args = _parseCommandLine(cmd_line, args);
 
-  for(unsigned int i = 1; i < num_of_args; i++) { 
+  for(int i = 1; i < num_of_args; i++) { 
     
     this->params.push_back(string(args[i]));
   }
@@ -133,20 +148,211 @@ Command::~Command(){
 const char* Command::getCommandLine() const{
   return this->command_line;
 }
-BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
-
-  
-SmallShell::SmallShell() {
-// TODO: add your implementation
-// TODO- create malloc to adress that will point to null for lastPwd
-lastPwd=new char*;
-*lastPwd=nullptr;
+bool Command::isStopped() const{
+  return this->stopped;
+}
+void Command::setStopped(bool stopped){
+  this->stopped = stopped;
+}
+bool Command::isBackground() const {
+    return this->background;
+}
+void Command::setBackground(bool background) {
+    this->background = background;
+}
+bool Command::isExternal() const {
+    return this->external;
 }
 
+
+
+BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
+
+// TODO: [1] - class ExternalCommand
+//       [2] - class PipeCommand
+//       [3] - class RedirectionCommand
+
+
+
+JobsList::JobEntry::JobEntry(int jobId, int pid, Command* cmd) : command(cmd){
+  this->job_id = jobId;
+  this->pid = pid;
+  this->start = time(nullptr);
+  if(this->start == ERROR){
+    perror("smash error: time failed");
+  }
+}
+
+int JobsList::JobEntry::getJobId() const{
+  return this->job_id;
+}
+void JobsList::JobEntry::setJobId(int JobId){
+  this->job_id = JobId;
+}
+pid_t JobsList::JobEntry::getPid() const{
+  return this->pid;
+}
+void JobsList::JobEntry::setPid(int pid){
+  this->pid = pid;
+}
+time_t JobsList::JobEntry::getTimeCommand() const{
+  return this->start;
+}
+void JobsList::JobEntry::setTimeCommand(time_t time){
+  this->start = time;
+}
+const char* JobsList::JobEntry::getCommand() const{
+  return this->command->getCommandLine();
+}
+void JobsList::JobEntry::deleteCommand(){
+  delete this->command;
+}
+bool JobsList::JobEntry::isStopped() const{
+  return this->command->isStopped();                  
+}
+void JobsList::JobEntry::setStopped(bool stopped){
+  return this->command->setStopped(stopped);          
+}
+bool JobsList::JobEntry::isBackground() const{
+  return command->isBackground();                    
+}
+void JobsList::JobEntry::setBackground(bool background){
+  return this->command->setBackground(background);          
+}
+
+// TODO : add class JobsList code here ->
+
+int JobsList::addJob(int pid, Command *cmd, bool stopped) {
+    int new_job_id = getMaxFromJobs();                                           
+    new_job_id += 1;
+    JobEntry new_job(new_job_id, pid, cmd);
+
+    this->run_jobs.insert(std::pair<int, JobEntry>(new_job_id, new_job));
+    setMaxFromJobs(new_job_id);                                                  
+
+    return new_job_id;
+}
+
+int JobsList::getMaxFromJobs() const{
+  return this->max_from_jobs;
+}
+
+void JobsList::setMaxFromJobs(int max_job_id){
+  this->max_from_jobs = max_job_id;
+}
+
+int JobsList::getMaxFromStoppedJobs() const {
+    return this->max_from_stopped;
+}
+
+void JobsList::setMaxFromStoppedJobs(int max_stopped_job_id) {
+    this->max_from_stopped = max_stopped_job_id;
+}
+
+int JobsList::getJobIdByPid(int pid){
+  if(this->run_jobs.size() == 0){
+    return 0;
+  }
+  for(const auto job : this->run_jobs){
+    if(job.second.getPid() == pid){
+      return job.first;
+    }
+  }
+  return 0;
+}
+
+int JobsList::MaxJobInMap(){
+  if (this->run_jobs.size() == 0) {
+      return 0;
+  }
+  int max_job_id = 0;
+  for (const auto &job : this->run_jobs) {
+      if (job.first > max_job_id) {
+        max_job_id = job.first;
+      }
+  }
+
+  return max_job_id;  
+}
+
+void JobsList::removeJobById(int jobId){
+  JobEntry job = this->run_jobs.find(jobId)->second;
+  job.deleteCommand();
+
+  this->run_jobs.erase(jobId);
+  int max_job_id = MaxJobInMap();
+
+  setMaxFromJobs(max_job_id);
+}
+
+void JobsList::removeFinishedJobs(){
+  int status;
+  int child_pid = waitpid(-1, &status, WNOHANG);
+  while (child_pid > 0){
+
+    int job_id = getJobIdByPid(child_pid);
+    if (job_id != 0){
+      removeJobById(job_id);
+    }
+
+    int child_pid = waitpid(-1, &status, WNOHANG);
+  }
+}
+
+void JobsList::printJobsList(){
+  for(auto &job : this->run_jobs){
+    time_t now = time(nullptr);
+    if(now == ERROR){
+      perror("smash error: time failed");
+      return;
+    }
+
+    time_t job_start_time = job.second.getTimeCommand();
+    time_t seconds_elapsed = difftime(now, job_start_time);
+
+    cout << "[" << job.second.getJobId() << "] " << job.second.getCommand() << " : " << job.second.getPid() << " " << seconds_elapsed << " secs";
+    if(job.second.isStopped()){
+      cout << " (stopped)";
+    }
+
+    cout << endl;
+  }
+}
+
+const map<int, JobsList::JobEntry> &JobsList::getRunJobs() const{
+  return this->run_jobs;
+}
+
+void JobsList::ChangeLastStoppedJob() {
+
+    map<int, JobsList::JobEntry> run_jobs = smash.getJobsList()->getRunJobs();
+    if (run_jobs.size() == 0) {
+        this->max_from_stopped = 0;
+    }
+    int max = 0;
+    for (auto job : run_jobs){
+        if(job.first > max && job.second.isStopped()) {
+            max = job.first;
+        }
+    }
+    this->max_from_stopped  = max;
+}
+
+
+SmallShell::SmallShell() : jobs(JobsList()) {
+// TODO: add your implementation
+// TODO- create malloc to adress that will point to null for lastPwd
+// TODO - add constructor to jobs
+//lastPwd=new char*;
+//*lastPwd=nullptr;
+}
+
+/*
 SmallShell::~SmallShell() {
 // TODO: add your implementation
    delete[] lastPwd; 
 }
+*/
 
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
@@ -185,7 +391,12 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("cd") == 0){
     return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
-   
+  else if (firstWord.compare("jobs") == 0) {
+    return new JobsCommand(cmd_line, smash.getJobsList());
+  }
+  else if (firstWord.compare("fg") == 0) {
+    return new ForegroundCommand(cmd_line, smash.getJobsList());
+  }
   
   return nullptr;
 }
@@ -216,6 +427,10 @@ char** SmallShell::getLastPwd(){
 
 void SmallShell::setLastPwd(char *lastPwd){
   this->lastPwd = &lastPwd;
+}
+
+JobsList* SmallShell::getJobsList(){
+  return &(this->jobs);
 }
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
@@ -393,4 +608,68 @@ void ForegroundCommand::execute()
 
 }*/
 
+
+JobsCommand::JobsCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line), jobs_list(jobs) {}
+void JobsCommand::execute(){
+  JobsList* list = smash.getJobsList();
+  list->removeFinishedJobs();
+  list->printJobsList();
+}
+
+ForegroundCommand::ForegroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {}
+void ForegroundCommand::execute(){
+  if(this->params.size() >1){
+    cerr << "smash error: fg: invalid arguments" << endl;
+    return;
+  }
+
+  map<int, JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs();
+  int job_id;
+
+  if(this->params.empty()){
+    if(run_jobs.size() == 0){
+      cerr << "smash error: fg: jobs list is empty" << endl;
+      return;
+    }
+    //TODO: maybe need to remove finished jobs before?
+    job_id = this->jobs_list->MaxJobInMap();
+  }
+  else {
+    if(!isItNumber(this->params.at(0))){
+    
+      cerr << "smash error: fg: invalid arguments" << endl;
+      return; 
+    }
+
+    int job_required = stoi(this->params.at(0));
+    this->jobs_list->removeFinishedJobs();
+
+    if(run_jobs.find(job_required) == run_jobs.end()){
+      cerr << "smash error: fg: job-id " << job_required << " does not exist" << endl;
+      return;
+    }
+
+    job_id = job_required;
+  }
+
+  int job_pid = run_jobs.find(job_id)->second.getPid();
+  string command_line = run_jobs.find(job_id)->second.getCommand();
+
+  cout << command_line << " : "  << job_pid << endl;
+
+  run_jobs.find(job_id)->second.setBackground(false);
+  if(killpg(job_pid, SIGCONT) == ERROR){
+    perror("smash error: kill failed");
+    return;
+  }
+
+  run_jobs.find(job_id)->second.setStopped(false);
+  waitpid(job_pid, nullptr, WUNTRACED);
+
+  if(!run_jobs.find(job_id)->second.isStopped()) {
+      this->jobs_list->removeJobById(job_id);
+  }
+
+  this->jobs_list->ChangeLastStoppedJob();
+}
 

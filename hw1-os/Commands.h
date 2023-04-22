@@ -40,11 +40,8 @@ class Command {
   bool isStopped() const;
   void setStopped(bool stopped);
   bool isBackground() const;
-  void setBackground(bool mode);
+  void setBackground(bool background);
   bool isExternal() const;
-
-  //TODO: HEN add getters and setters!:) 
-
 };
 
 class BuiltInCommand : public Command {
@@ -139,10 +136,10 @@ class JobsList {
 
   public:
     JobEntry(int jobId, int pid, Command* cmd);
-    ~JobEntry(){}
+    ~JobEntry(){};
     int getJobId() const;
     void setJobId(int JobId);
-    int getPid() const;
+    pid_t getPid() const;
     void setPid(int pid);
     time_t getTimeCommand() const;
     void setTimeCommand(time_t time);
@@ -151,39 +148,50 @@ class JobsList {
     bool isStopped() const;
     void setStopped(bool stopped);
     bool isBackground() const;
-    void setBackground(bool mode);
+    void setBackground(bool background);
   };
 
  private:
   // TODO: Add your data members
   map<int, JobEntry> run_jobs;
-  int max_from_jobs;
-  int max_from_stopped;
+  int max_from_jobs = 0;
+  int max_from_stopped = 0;
 
  public:
-  JobsList();
-  ~JobsList();
-  void addJob(Command* cmd, bool isStopped = false);
+  JobsList()=default;
+  ~JobsList(){};
+  //void addJob(Command* cmd, bool isStopped = false);
   void printJobsList();
-  void killAllJobs();
+  //void killAllJobs();
   void removeFinishedJobs();
-  JobEntry * getJobById(int jobId);
+  //JobEntry * getJobById(int jobId);
   void removeJobById(int jobId);
-  JobEntry * getLastJob(int* lastJobId);
-  JobEntry *getLastStoppedJob(int *jobId);
+  //JobEntry * getLastJob(int* lastJobId);
+  //JobEntry *getLastStoppedJob(int *jobId);
   // TODO: Add extra methods or modify exisitng ones as needed
+  int addJob(int pid, Command* cmd, bool stopped);
   int getMaxFromJobs() const;
   void setMaxFromJobs(int max_job_id);
   int getMaxFromStoppedJobs() const;
-  void SetMaxFromStoppedJobs(int max_stopped_job_id);
+  void setMaxFromStoppedJobs(int max_stopped_job_id);
   int MaxJobInMap();
   int getJobIdByPid(int pid);
   void ChangeLastStoppedJob();
-  const std::map<int, JobEntry> &get_run_jobs() const;
+  const std::map<int, JobEntry> &getRunJobs() const;
+
+  /*
+TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
+       [*] - void killAllJobs();
+       [*] - JobEntry * getJobById(int jobId);
+       [*] - JobEntry * getLastJob(int* lastJobId);
+       [*] - JobEntry *getLastStoppedJob(int *jobId);
+*/
 };
 
 class JobsCommand : public BuiltInCommand {
  // TODO: Add your data members
+ private:
+  JobsList* jobs_list;
  public:
   JobsCommand(const char* cmd_line, JobsList* jobs);
   virtual ~JobsCommand() {}
@@ -193,9 +201,13 @@ class JobsCommand : public BuiltInCommand {
 class ForegroundCommand : public BuiltInCommand {
  // TODO: Add your data members
  private:
+<<<<<<< HEAD
  JobsList::JobEntry *job ;
  //int job_id_fg ;
  error_status_fg status ;
+=======
+ JobsList* jobs_list;
+>>>>>>> 0d68c229822cb14f3b22a42b9388468891c00685
  public:
   ForegroundCommand(const char* cmd_line, JobsList* jobs);
   virtual ~ForegroundCommand() {}
@@ -255,8 +267,9 @@ class SmallShell {
  private:
   // TODO: Add your data members
   SmallShell();
+  JobsList jobs;
   string prompt = "smash> ";
-  char** lastPwd;
+  //char** lastPwd;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -267,13 +280,18 @@ class SmallShell {
     // Instantiated on first use.
     return instance;
   }
-  ~SmallShell();
+  ~SmallShell(){}
   void executeCommand(const char* cmd_line);
   // TODO: add extra methods as needed
   string getPrompt();
   void setPrompt(string prompt);
+<<<<<<< HEAD
   char** getLastPwd();
   void setLastPwd(char *lastPwd);
+=======
+  JobsList* getJobsList();
+  //  TODO: TALI  add getters setters here!:)
+>>>>>>> 0d68c229822cb14f3b22a42b9388468891c00685
 
 };
 
@@ -282,4 +300,6 @@ class SmallShell {
 #ifndef EXTRA
 #define EXTRA
 void freeArgs(char ** args, int len);
+bool isItNumber(const string &str);
+
 #endif // EXTRA
