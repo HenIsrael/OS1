@@ -108,7 +108,7 @@ void freeArgs(char ** args, int len){
 }
 
 bool isItNumber(const string &str){
-  if (str.empty()){ //TODO: maybe need to check '+'/'-' before is valid ?? 
+  if (str.empty() || ((!isdigit(str[0])) && (str[0] != '-') && (str[0] != '+'))){
     return false;
   } 
 
@@ -402,6 +402,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("bg") == 0) {
     return new BackgroundCommand(cmd_line, smash.getJobsList());
   }
+  else if (firstWord.compare("kill") == 0) {
+    return new KillCommand(cmd_line, smash.getJobsList());
+  }
   
   return nullptr;
 }
@@ -645,4 +648,38 @@ void BackgroundCommand::execute() {
 
   run_jobs.at(job_id).setStopped(false);
   this->jobs_list->ChangeLastStoppedJob();
+}
+
+KillCommand::KillCommand(const char* cmd_line, JobsList* jobs) : BuiltInCommand(cmd_line) ,jobs_list(jobs){}
+void KillCommand::execute() {
+
+  if (this->params.size() != 2) {
+      cerr << "smash error: kill: invalid arguments" << endl;
+      return;
+  }
+
+  int sig_num = 0;
+  int job_id = 0;
+
+  if (!isItNumber(this->params.at(0)) || !isItNumber(this->params.at(1))) { //TODO: 
+    cerr << "smash error: kill: invalid arguments" << endl;
+    return;
+  }
+  else {
+    sig_num = stoi(this->params.at(0));
+    job_id = stoi(this->params.at(1));
+  }
+
+  if(job_id < 0){
+    cerr << "smash error: kill: job-id " << job_id << " does not exist" << endl;
+    return;
+  }
+  if(sig_num >= 0){
+     cerr << "smash error: kill: invalid arguments" << endl;
+     return;
+  }
+
+
+
+
 }
