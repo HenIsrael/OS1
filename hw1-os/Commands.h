@@ -15,6 +15,9 @@ using namespace std;
 #define COMMAND_MAX_ARGS (20)
 #define ERROR (-1)
 
+enum status_cd {too_many_arg , no_args, back , back_null , ok };
+enum error_status_fg {no_jobs , job_not_exist , invalid_arguments , ok };
+
 class Command {
 // TODO: Add your data members
  protected:
@@ -85,8 +88,10 @@ class ChpromptCommand : public BuiltInCommand{
 class ChangeDirCommand : public BuiltInCommand {
 // TODO: Add your data members public:
 private:
-  char* current_path;
-  char* next_path;
+  status_cd status;
+  //std::string current_path = "";
+  std::string next_path = "";
+  std::string m_next_plastPwd = "";
 public:
   ChangeDirCommand(const char* cmd_line, char** plastPwd);
   virtual ~ChangeDirCommand() {}
@@ -196,7 +201,10 @@ class JobsCommand : public BuiltInCommand {
 class ForegroundCommand : public BuiltInCommand {
  // TODO: Add your data members
  private:
- JobsList* jobs_list;
+ JobsList::JobEntry *job ;
+ JobsList *jobs_list;
+ //int job_id_fg ;
+ error_status_fg status ;
  public:
   ForegroundCommand(const char* cmd_line, JobsList* jobs);
   virtual ~ForegroundCommand() {}
@@ -258,7 +266,7 @@ class SmallShell {
   SmallShell();
   JobsList jobs;
   string prompt = "smash> ";
-  //char** lastPwd;
+  char** lastPwd;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -276,6 +284,8 @@ class SmallShell {
   void setPrompt(string prompt);
   JobsList* getJobsList();
   //  TODO: TALI  add getters setters here!:)
+  char** getLastPwd();
+  void setLastPwd(char *lastPwd);
 
 };
 
