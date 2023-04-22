@@ -330,6 +330,44 @@ void ChangeDirCommand::execute()
   }
 }
 
+ForegroundCommand::ForegroundCommand(const char* cmd_line, JobsList* jobs)
+:BuiltInCommand(cmd_line)
+{
+  if(this->params.size() == 0)
+  {
+    int max_job = smash.getJobesList()->getMaxFromJobes();
+    if(max_job == 0)
+    {
+      this->status = no_jobs;
+      return;
+    }
+    else
+    {
+      this->status = ok;
+      this->job = smash.getJobesList()->getJobById(max_job);
+    }
+  }
+  else if(this->params.size() > 1)
+  {
+    this->status = invalid_arguments;
+    return;
+  }
+  else
+  {
+    int job_id_int = stoi(this->params.at(0)) ;
+    this->job = smash.getJobesList()->getJobById(job_id_int);
+    //TO DO - nake sure theres handle in case of invalid argument
+    if(!this->job)
+    {
+      this->status = invalid_arguments;
+    }
+    else
+    {
+      this->status = ok ;
+    }
+  }
+}
+
 void ForegroundCommand::execute()
 {
   if( this->status == no_jobs)
@@ -348,7 +386,8 @@ void ForegroundCommand::execute()
   {
     std::cout << this->job->getCommand() << " " << this->job->getPid() <<endl; 
     kill(this->job->getPid(), SIGCONT);
-    waitpid(getpid());
+    waitpid(this->job->getPid() , NULL , NULL); //check if correct
+    //smash->getJobesList()->removeJobById(this->job->getPid());
   }
 
 }

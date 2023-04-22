@@ -16,7 +16,7 @@ using namespace std;
 #define ERROR (-1)
 
 enum status_cd {too_many_arg , no_args, back , back_null , ok };
-enum error_status_fg {no_jobs , job_not_exist , invalid_arguments };
+enum error_status_fg {no_jobs , job_not_exist , invalid_arguments , ok };
 
 class Command {
 // TODO: Add your data members
@@ -193,8 +193,8 @@ class JobsCommand : public BuiltInCommand {
 class ForegroundCommand : public BuiltInCommand {
  // TODO: Add your data members
  private:
- JobsList *job ;
- int job_id_fg ;
+ JobsList::JobEntry *job ;
+ //int job_id_fg ;
  error_status_fg status ;
  public:
   ForegroundCommand(const char* cmd_line, JobsList* jobs);
