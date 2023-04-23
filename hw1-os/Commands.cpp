@@ -320,6 +320,20 @@ void JobsList::printJobsList(){
   }
 }
 
+bool JobsList::isJobExistsById (int job_id)
+{
+  std::map<int,JobEntry>::iterator it;
+  it = this->run_jobs.find(job_id);
+  if (it == this->run_jobs.end())
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
 const map<int, JobsList::JobEntry> &JobsList::getRunJobs() const{
   return this->run_jobs;
 }
@@ -433,6 +447,7 @@ char** SmallShell::getLastPwd(){
 void SmallShell::setLastPwd(char *lastPwd){
   this->lastPwd = &lastPwd;
 }
+
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
 void ChpromptCommand::execute(){
@@ -498,7 +513,7 @@ ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): Built
   } 
   else
   {
-    this->status = ok ; 
+    this->status = ok_cd ; 
     next_path = path ; 
     std::cout << "ok- plastPwd-next path in consructoe is " << next_path << endl ;
   }
@@ -546,13 +561,13 @@ void ChangeDirCommand::execute()
   }
 }
 
-/*
+
 ForegroundCommand::ForegroundCommand(const char* cmd_line, JobsList* jobs)
-:BuiltInCommand(cmd_line)
+:BuiltInCommand(cmd_line),jobs_list(jobs)
 {
   if(this->params.size() == 0)
   {
-    int max_job = smash.getJobesList()->getMaxFromJobes();
+    int max_job = this->jobs_list->MaxJobInMap();
     if(max_job == 0)
     {
       this->status = no_jobs;
@@ -561,7 +576,6 @@ ForegroundCommand::ForegroundCommand(const char* cmd_line, JobsList* jobs)
     else
     {
       this->status = ok;
-      this->job = smash.getJobesList()->getJobById(max_job);
     }
   }
   else if(this->params.size() > 1)
@@ -569,18 +583,20 @@ ForegroundCommand::ForegroundCommand(const char* cmd_line, JobsList* jobs)
     this->status = invalid_arguments;
     return;
   }
+  else if(!isItNumber(this->params.at(0)))
+  {
+    this->status = invalid_arguments;
+    return;
+  }
   else
   {
-    int job_id_int = stoi(this->params.at(0)) ;
-    this->job = smash.getJobesList()->getJobById(job_id_int);
-    //TO DO - nake sure theres handle in case of invalid argument
-    if(!this->job)
+    if(this->jobs_list->isJobExistsById(stoi(this->params.at(0))))
     {
-      this->status = invalid_arguments;
+      this->status = ok;
     }
     else
     {
-      this->status = ok ;
+      this->status = job_not_exist;
     }
   }
 }
@@ -593,7 +609,7 @@ void ForegroundCommand::execute()
   }
   else if( this->status == job_not_exist )
   {
-    std::cerr << "smash error: fg: job-id " << this->job_id_fg << " does not exist" << endl;
+    std::cerr << "smash error: fg: job-id " << this->params.at(0) << " does not exist" << endl;
   }
   else if( this->status == invalid_arguments )
   {
@@ -601,22 +617,75 @@ void ForegroundCommand::execute()
   }
   else
   {
-    std::cout << this->job->getCommand() << " " << this->job->getPid() <<endl; 
-    kill(this->job->getPid(), SIGCONT);
-    waitpid(this->job->getPid() , NULL , NULL); //check if correct
-    //smash->getJobesList()->removeJobById(this->job->getPid());
-  }
+    this->jobs_list->removeFinishedJobs();
 
-}*/
+    std::map<int,JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs(); //here
+    int job_id = stoi(this->params.at(0));
+    std::string command_to_print = jobs_list->getRunJobs().find(job_id)->second.getCommand();
+    int job_pid = jobs_list->getRunJobs().find(job_id)->second.getPid();
+
+    std::cout <<  command_to_print << " : " << job_pid <<endl; 
+
+    run_jobs.find(job_id)->second.setBackground(false);
+    //this->jobs_list->getRunJobs().find(job_id)->second.setBackground(false); // here
+
+    if( kill(job_pid, SIGCONT) == ERROR )
+    {
+      perror("smash error: kill failed");
+      return;
+    }
+
+    run_jobs.find(job_id)->second.setStopped(false);
+
+    waitpid(job_pid , NULL , NULL); //check if correct
+    this->jobs_list->removeJobById(job_id);
+    this->jobs_list->ChangeLastStoppedJob();
+
+}
+}
 
 
-JobsCommand::JobsCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line), jobs_list(jobs) {}
-void JobsCommand::execute(){
+JobsCommand::JobsCommand(const char* cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line), jobs_list(jobs) {}
+
+void JobsCommand::execute()
+{
   JobsList* list = smash.getJobsList();
   list->removeFinishedJobs();
   list->printJobsList();
 }
 
+QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cmd_line), jobs_list(jobs)
+{
+  if (this->params.at(0) == "kill")
+  {
+    this->kill_bool = true ; 
+  }
+}
+
+  void QuitCommand::execute()
+  {
+    this->jobs_list->removeFinishedJobs(); //for safety
+    if(this->kill_bool)
+    {
+      int map_size = this->jobs_list->getRunJobs().size();
+      std::cout << "sending SIGKILL signal to " << map_size <<" jobs" <<endl; 
+      map<int, JobsList::JobEntry>::iterator it;
+      map<int, JobsList::JobEntry> run_jobs;
+
+      for (it = run_jobs.begin(); it != run_jobs.end(); it++)
+      {
+        int job_id = it->second.getJobId();
+        std::cout << it->second.getPid() << ": " << it->second.getCommand() <<endl;
+        kill( it->second.getPid() ,SIGKILL );
+        this->jobs_list->removeJobById(job_id);
+      }
+    }
+    kill(getpid() ,SIGKILL );
+  }
+
+
+
+/*
 ForegroundCommand::ForegroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {} 
 void ForegroundCommand::execute(){
   if(this->params.size() >1){
@@ -673,4 +742,4 @@ void ForegroundCommand::execute(){
 
   this->jobs_list->ChangeLastStoppedJob();
 }
-
+*/
