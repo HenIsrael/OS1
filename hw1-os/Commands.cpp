@@ -413,6 +413,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("fg") == 0) {
     return new ForegroundCommand(cmd_line, smash.getJobsList());
   }
+  else if (firstWord.compare("quit") == 0) {
+    return new QuitCommand(cmd_line, smash.getJobsList());
+  }
   
   return nullptr;
 }
@@ -656,7 +659,7 @@ void JobsCommand::execute()
 
 QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cmd_line), jobs_list(jobs)
 {
-  if (this->params.at(0) == "kill")
+  if (this->params.size() != 0 && this->params.at(0)== "kill")
   {
     this->kill_bool = true ; 
   }
@@ -667,6 +670,7 @@ QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cm
     this->jobs_list->removeFinishedJobs(); //for safety
     if(this->kill_bool)
     {
+      //std::cout << "im here bitches" <<endl;
       int map_size = this->jobs_list->getRunJobs().size();
       std::cout << "sending SIGKILL signal to " << map_size <<" jobs" <<endl; 
       map<int, JobsList::JobEntry>::iterator it;
