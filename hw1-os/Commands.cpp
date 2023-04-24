@@ -683,7 +683,7 @@ QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cm
       int map_size = this->jobs_list->getRunJobs().size();
       std::cout << "sending SIGKILL signal to " << map_size <<" jobs" <<endl; 
       map<int, JobsList::JobEntry>::iterator it;
-      map<int, JobsList::JobEntry> run_jobs;
+      map<int, JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs();
 
       for (it = run_jobs.begin(); it != run_jobs.end(); it++)
       {

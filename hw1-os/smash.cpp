@@ -18,14 +18,13 @@ int main(int argc, char* argv[]) {
     //TODO: setup sig alarm handler
     
 
-    int i =0;
-    // temperory... Maybe -> while(smash.isquit)
-    while(i<=20) { 
+    while(true) {  
         std::cout << smash.getPrompt();
         std::string cmd_line;
         std::getline(std::cin, cmd_line);
+        smash.getJobsList()->removeFinishedJobs();
         smash.executeCommand(cmd_line.c_str());
-        i++;
+        smash.getJobsList()->removeFinishedJobs();
     }
     return 0;
 }
