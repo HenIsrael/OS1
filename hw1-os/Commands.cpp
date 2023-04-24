@@ -109,7 +109,7 @@ void freeArgs(char ** args, int len){
 }
 
 bool isItNumber(const string &str){
-  if (str.empty()){ //TODO: maybe need to check '+'/'-' before is valid ?? 
+  if (str.empty() || ((!isdigit(str[0])) && (str[0] != '-') && (str[0] != '+'))){
     return false;
   } 
 
@@ -399,6 +399,12 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("fg") == 0) {
     return new ForegroundCommand(cmd_line, smash.getJobsList());
   }
+  else if (firstWord.compare("bg") == 0) {
+    return new BackgroundCommand(cmd_line, smash.getJobsList());
+  }
+  else if (firstWord.compare("kill") == 0) {
+    return new KillCommand(cmd_line, smash.getJobsList());
+  }
   
   return nullptr;
 }
@@ -674,3 +680,119 @@ void ForegroundCommand::execute(){
   this->jobs_list->ChangeLastStoppedJob();
 }
 
+BackgroundCommand::BackgroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {}
+void BackgroundCommand::execute() {
+  if(this->params.size() >1){
+    cerr << "smash error: bg: invalid arguments" << endl;
+    return;
+  }
+  map<int, JobsList::JobEntry> run_jobs=this->jobs_list->getRunJobs();
+  int job_id = 0;
+
+  if(this->params.size() == 0){
+    job_id = this->jobs_list->MaxJobInMap();
+
+    if(job_id == 0){
+      cerr << "smash error: bg: there is no stopped jobs to resume" << endl;
+      return;
+    }
+  }
+
+  else{
+    if(!isItNumber(this->params.at(0))){
+      cerr << "smash error: bg: invalid arguments" << endl;
+      return; 
+    }
+    else {
+      job_id = stoi(this->params.at(0));
+    }
+
+    if(run_jobs.find(job_id) == run_jobs.end()){
+      cerr << "smash error: bg: job-id " << job_id << " does not exist" << endl;
+      return;
+    }
+
+    if(run_jobs.find(job_id)->second.isBackground() && !run_jobs.find(job_id)->second.isStopped()){
+      cerr << "smash error: bg: job-id " << job_id << " is already running in the background" << endl;
+      return;
+    }
+    else if(run_jobs.find(job_id)->second.isBackground() && run_jobs.find(job_id)->second.isStopped()){
+      int job_pid = run_jobs.find(job_id)->second.getPid();
+
+      string command_line = run_jobs.find(job_id)->second.getCommand();
+      cout << command_line << " : "  << job_pid << endl;
+
+      if(killpg(job_pid, SIGCONT) == ERROR){
+        perror("smash error: kill failed");
+        return;
+      }
+
+      run_jobs.at(job_id).setStopped(false);
+      this->jobs_list->ChangeLastStoppedJob();
+      return;
+    }
+  }
+
+  int job_pid = run_jobs.find(job_id)->second.getPid();
+
+  string command_line = run_jobs.find(job_id)->second.getCommand();
+  cout << command_line << " : "  << job_pid << endl;
+
+  if(killpg(job_pid, SIGCONT) == ERROR){
+    perror("smash error: kill failed");
+    return;
+  }
+
+  run_jobs.at(job_id).setStopped(false);
+  this->jobs_list->ChangeLastStoppedJob();
+}
+
+KillCommand::KillCommand(const char* cmd_line, JobsList* jobs) : BuiltInCommand(cmd_line) ,jobs_list(jobs){}
+void KillCommand::execute() {
+
+  if (this->params.size() != 2) {
+      cerr << "smash error: kill: invalid arguments" << endl;
+      return;
+  }
+
+  int sig_num = 0;
+  int job_id = 0;
+
+  if (!isItNumber(this->params.at(0)) || !isItNumber(this->params.at(1))) { //TODO: 
+    cerr << "smash error: kill: invalid arguments" << endl;
+    return;
+  }
+  else {
+    sig_num = stoi(this->params.at(0));
+    job_id = stoi(this->params.at(1));
+  }
+
+  if(job_id < 0){
+    cerr << "smash error: kill: job-id " << job_id << " does not exist" << endl;
+    return;
+  }
+  if(sig_num >= 0){
+     cerr << "smash error: kill: invalid arguments" << endl;
+     return;
+  }
+
+  map<int, JobsList::JobEntry> run_jobs=this->jobs_list->getRunJobs();
+  if (run_jobs.find(job_id) == run_jobs.end()){
+      cerr << "smash error: kill: job-id " << job_id << " does not exist" << endl;
+      return;
+  }
+
+  int job_pid = run_jobs.find(job_id)->second.getPid();
+  if(kill(job_pid, abs(sig_num)) == ERROR){
+    perror("smash error: kill failed");
+    return;
+  }
+  else if(abs(sig_num) == 9){
+    this->jobs_list->removeJobById(job_id);
+  }
+
+  else if(abs(sig_num) == 19){
+    //TODO : check if is valid command
+  }
+  cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
+}
