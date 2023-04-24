@@ -15,7 +15,7 @@ using namespace std;
 #define COMMAND_MAX_ARGS (20)
 #define ERROR (-1)
 
-enum status_cd {too_many_arg , no_args, back , back_null , ok };
+enum status_cd {too_many_arg , no_args, back , back_null , ok_cd };
 enum error_status_fg {no_jobs , job_not_exist , invalid_arguments , ok };
 
 class Command {
@@ -116,7 +116,10 @@ class ShowPidCommand : public BuiltInCommand {
 
 class JobsList;
 class QuitCommand : public BuiltInCommand {
-// TODO: Add your data members
+private:
+  bool kill_bool = false ;
+  JobsList* jobs_list ;
+
 public:
   QuitCommand(const char* cmd_line, JobsList* jobs);
   virtual ~QuitCommand() {}
@@ -178,6 +181,7 @@ class JobsList {
   int getJobIdByPid(int pid);
   void ChangeLastStoppedJob();
   const std::map<int, JobEntry> &getRunJobs() const;
+  bool isJobExistsById (int job_id);
 
   /*
 TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
@@ -201,13 +205,9 @@ class JobsCommand : public BuiltInCommand {
 class ForegroundCommand : public BuiltInCommand {
  // TODO: Add your data members
  private:
-<<<<<<< HEAD
- JobsList::JobEntry *job ;
- //int job_id_fg ;
+ JobsList *jobs_list;
  error_status_fg status ;
-=======
- JobsList* jobs_list;
->>>>>>> 0d68c229822cb14f3b22a42b9388468891c00685
+ 
  public:
   ForegroundCommand(const char* cmd_line, JobsList* jobs);
   virtual ~ForegroundCommand() {}
@@ -269,7 +269,7 @@ class SmallShell {
   SmallShell();
   JobsList jobs;
   string prompt = "smash> ";
-  //char** lastPwd;
+  char** lastPwd;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -280,18 +280,15 @@ class SmallShell {
     // Instantiated on first use.
     return instance;
   }
-  ~SmallShell(){}
+  ~SmallShell();
   void executeCommand(const char* cmd_line);
   // TODO: add extra methods as needed
   string getPrompt();
   void setPrompt(string prompt);
-<<<<<<< HEAD
-  char** getLastPwd();
-  void setLastPwd(char *lastPwd);
-=======
   JobsList* getJobsList();
   //  TODO: TALI  add getters setters here!:)
->>>>>>> 0d68c229822cb14f3b22a42b9388468891c00685
+  char** getLastPwd();
+  void setLastPwd(char *lastPwd);
 
 };
 
