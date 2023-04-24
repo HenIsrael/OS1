@@ -279,7 +279,7 @@ class SmallShell {
     // Instantiated on first use.
     return instance;
   }
-  ~SmallShell(){}
+  ~SmallShell();
   void executeCommand(const char* cmd_line);
   // TODO: add extra methods as needed
   string getPrompt();

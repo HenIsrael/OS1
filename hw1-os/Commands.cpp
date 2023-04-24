@@ -358,16 +358,17 @@ SmallShell::SmallShell() : jobs(JobsList()) {
 // TODO: add your implementation
 // TODO- create malloc to adress that will point to null for lastPwd
 // TODO - add constructor to jobs
+lastPwd=new char*;
+*lastPwd=nullptr;
 //lastPwd=new char*;
-//*lastPwd=nullptr;
 }
 
-/*
+
 SmallShell::~SmallShell() {
 // TODO: add your implementation
    delete[] lastPwd; 
 }
-*/
+
 
 /**
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
@@ -447,8 +448,8 @@ char** SmallShell::getLastPwd(){
   return this->lastPwd;
 }
 
-void SmallShell::setLastPwd(char *lastPwd){
-  this->lastPwd = &lastPwd;
+void SmallShell::setLastPwd(char *newPwd){
+  (*this->lastPwd) = newPwd;
 }
 
 //-----------------------Built in commands------------------------------------------------------------------------
@@ -488,6 +489,7 @@ void GetCurrDirCommand::execute(){
 
 ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): BuiltInCommand(cmd_line)
 {
+  //std::cout << "ok- plastPwd-next path in consructoe is "  << endl ;
   //std::cout << "plastPwd is " << *plastPwd << endl ;
   if(this->params.size() == 0)
   {
@@ -503,6 +505,7 @@ ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): Built
   }
   else if(path == "-")
   {
+
     if(!*plastPwd)
     {
       status = back_null;
@@ -510,13 +513,18 @@ ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): Built
     else
     {
       status = back ;
+      std::cout << "im here1 "  << endl ;
+      std::cout << "im here addres "  << plastPwd<< endl ;
+      std::cout << "im here value "  << *plastPwd<< endl ;
+
       next_path = *plastPwd ;
-      //std::cout << "back- plastPwd-next path in consructoe is " << next_path << endl ; 
+      std::cout << "back- plastPwd-next path in consructoe is " << next_path << endl ; 
     }
   } 
   else
   {
     this->status = ok_cd ; 
+    std::cout << "im here2 "  << endl ;
     next_path = path ; 
     std::cout << "ok- plastPwd-next path in consructoe is " << next_path << endl ;
   }
@@ -541,25 +549,18 @@ void ChangeDirCommand::execute()
   } 
   else
   {
-    std::cout << "next_path is "<< this->next_path << endl;
-    std::cout << "m_next_plastPwd is "<< this->m_next_plastPwd << endl;
     if(chdir(next_path.c_str()) == ERROR)
     {
       perror("chdir failed");
     }
     else
     {
-      std::cout << "good" <<endl ;
       char* tmp = strdup(m_next_plastPwd.c_str());
-      std::cout << "tmp is" << tmp <<endl ;
-      std::cout << "good" <<endl ;
-      std::cout << "tmp is" << tmp <<endl ;
 
       smash.setLastPwd( tmp );
-      std::cout << "lastPwd shell" << *(smash.getLastPwd()) <<endl ;
-      std::cout << "good" <<endl ;
-      delete tmp;
-      std::cout << "end" <<endl ;
+
+      std::cout << "lastPwd shell is" << *(smash.getLastPwd()) <<endl ;
+      //delete tmp; // check if needed
     }
   }
 }
@@ -684,7 +685,8 @@ QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cm
         this->jobs_list->removeJobById(job_id);
       }
     }
-    kill(getpid() ,SIGKILL );
+    //kill(getpid() ,SIGKILL );
+    exit(0);
   }
 
 
