@@ -52,7 +52,7 @@ class BuiltInCommand : public Command {
 
 class ExternalCommand : public Command {
  public:
-  ExternalCommand(const char* cmd_line);
+  ExternalCommand(const char* cmd_line, bool is_back);
   virtual ~ExternalCommand() {}
   void execute() override;
 };

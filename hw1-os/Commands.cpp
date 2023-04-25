@@ -169,9 +169,82 @@ bool Command::isExternal() const {
 
 BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
-// TODO: [1] - class ExternalCommand
-//       [2] - class PipeCommand
-//       [3] - class RedirectionCommand
+ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(cmd_line) {
+  this->external = true;
+  this->background = is_back;
+ }
+
+ void ExternalCommand::execute(){
+
+  int pid = fork();
+
+  if(pid == ERROR){
+    perror("smash error: fork failed");
+    return;
+  }
+
+  // child code
+   if(pid == 0){
+
+    setpgrp();
+
+    char* external_command = new char[strlen(this->command_line) + 1];
+    strcpy(external_command, this->command_line);
+    _trim(external_command);
+    _removeBackgroundSign(external_command);
+
+
+    char* args[] = {"/bin/bash", "-c",external_command, nullptr};
+
+
+    // complex
+    if(!this->params.empty() && (this->params.at(0).at(0) == '*' || this->params.at(0).at(0) == '?')){
+      int result_exc = execv(args[0],args);
+      if (result_exc == ERROR){
+        perror("smash error: execv failed");
+        return;
+      }
+
+    // TODO : simple
+    }else{
+
+      string command = string(external_command).substr(0, string(external_command).find_first_of(" \n"));
+
+      char ** simple_args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
+      int num_of_args = _parseCommandLine(external_command, args);
+
+      cout << "ok" << endl;
+
+      //int result_exc = execv(command.c_str(), simple_args); // TODO : check if ok    
+
+    }
+   }
+  
+
+  // father code
+
+  else{
+    smash.getJobsList()->removeFinishedJobs();
+    int new_job = smash.getJobsList()->addJob(pid,this,false);
+
+    if(!(this->isBackground())){
+      if(waitpid(pid,nullptr,WNOHANG) == ERROR){
+        perror("smash error: waitpid failed");
+      }
+
+      if(!smash.getJobsList()->getRunJobs().find(new_job)->second.isStopped()){
+        smash.getJobsList()->removeJobById(new_job);
+      }
+
+      smash.getJobsList()->ChangeLastStoppedJob();
+         
+    }
+  }
+ }
+
+// TODO: 
+//       [1] - class PipeCommand
+//       [2] - class RedirectionCommand
 
 
 
@@ -395,6 +468,8 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
 
+  bool background = _isBackgroundComamnd(cmd_line);
+
   if (firstWord.compare("chprompt") == 0) {
     return new ChpromptCommand(cmd_line);
   }
@@ -422,6 +497,8 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   }
   else if (firstWord.compare("kill") == 0) {
     return new KillCommand(cmd_line, smash.getJobsList());
+  }else if(!cmd_s.empty()) {
+    return new ExternalCommand(cmd_line, background);
   }
   
   return nullptr;

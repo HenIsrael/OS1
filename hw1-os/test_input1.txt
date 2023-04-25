@@ -1,8 +1,0 @@
-chprompt hello
-sleep 2
-sleep 3
-sleep 5&
-chprompt
-sleep 10&
-sleep 12
-quit kill
