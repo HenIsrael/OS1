@@ -176,7 +176,7 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
  void ExternalCommand::execute(){
 
-  int pid = fork();
+  pid_t pid = fork();
 
   if(pid == ERROR){
     perror("smash error: fork failed");
@@ -193,7 +193,7 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
     _trim(external_command);
     _removeBackgroundSign(external_command);
 
-
+    
     char* args[] = {"/bin/bash", "-c",external_command, nullptr};
 
 
@@ -211,16 +211,28 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
       string command = string(external_command).substr(0, string(external_command).find_first_of(" \n"));
 
       char ** simple_args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
-      int num_of_args = _parseCommandLine(external_command, args);
+      int num_of_args = _parseCommandLine(external_command, simple_args);
+      
+      /*
+      for(int i = 1; i < num_of_args; i++) { 
+        simple_args[i] = args[i];
+      }
+      */
+      simple_args[num_of_args] = nullptr;
+      
+  
+      // TODO : free args
 
-      cout << "ok" << endl;
+      int result_exc = execvp(command.c_str(), simple_args); 
 
-      //int result_exc = execv(command.c_str(), simple_args); // TODO : check if ok    
-
+      if (result_exc == ERROR){
+        perror("smash error: execv failed");
+        exit(-1); // TODO : CHECK IF OK.
+      } 
     }
+
    }
   
-
   // father code
 
   else{
@@ -228,9 +240,8 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
     int new_job = smash.getJobsList()->addJob(pid,this,false);
 
     if(!(this->isBackground())){
-      if(waitpid(pid,nullptr,WNOHANG) == ERROR){
-        perror("smash error: waitpid failed");
-      }
+      waitpid(pid,nullptr,WUNTRACED);
+    
 
       if(!smash.getJobsList()->getRunJobs().find(new_job)->second.isStopped()){
         smash.getJobsList()->removeJobById(new_job);
@@ -240,6 +251,7 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
          
     }
   }
+
  }
 
 // TODO: 

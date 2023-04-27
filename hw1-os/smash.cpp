@@ -24,7 +24,6 @@ int main(int argc, char* argv[]) {
         std::getline(std::cin, cmd_line);
         smash.getJobsList()->removeFinishedJobs();
         smash.executeCommand(cmd_line.c_str());
-        smash.getJobsList()->removeFinishedJobs();
     }
     return 0;
 }
