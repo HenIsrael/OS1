@@ -196,7 +196,7 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
     
     char* args[] = {"/bin/bash", "-c",external_command, nullptr};
 
-
+    
     // complex
     if(!this->params.empty() && (this->params.at(0).at(0) == '*' || this->params.at(0).at(0) == '?')){
       int result_exc = execv(args[0],args);
@@ -205,7 +205,7 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
         return;
       }
 
-    // TODO : simple
+    // simple
     }else{
 
       string command = string(external_command).substr(0, string(external_command).find_first_of(" \n"));
@@ -213,24 +213,18 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
       char ** simple_args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
       int num_of_args = _parseCommandLine(external_command, simple_args);
       
-      /*
-      for(int i = 1; i < num_of_args; i++) { 
-        simple_args[i] = args[i];
-      }
-      */
       simple_args[num_of_args] = nullptr;
-      
-  
-      // TODO : free args
 
       int result_exc = execvp(command.c_str(), simple_args); 
 
       if (result_exc == ERROR){
-        perror("smash error: execv failed");
-        exit(-1); // TODO : CHECK IF OK.
+        perror("smash error: execvp failed");
+        freeArgs(simple_args, COMMAND_MAX_ARGS);
+        exit(-1); // TODO : CHECK IF pwsOK.
       } 
-    }
 
+      freeArgs(simple_args, COMMAND_MAX_ARGS);
+    }
    }
   
   // father code
@@ -381,7 +375,7 @@ void JobsList::removeFinishedJobs(){
       removeJobById(job_id);
     }
 
-    int child_pid = waitpid(-1, &status, WNOHANG);
+    child_pid = waitpid(-1, &status, WNOHANG);
   }
 }
 
@@ -857,7 +851,7 @@ void BackgroundCommand::execute() {
   int job_id = 0;
 
   if(this->params.size() == 0){
-    job_id = this->jobs_list->MaxJobInMap();
+    job_id = this->jobs_list->getMaxFromStoppedJobs();
 
     if(job_id == 0){
       cerr << "smash error: bg: there is no stopped jobs to resume" << endl;
