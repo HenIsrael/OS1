@@ -252,6 +252,97 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
   }
  }
 
+ PipeCommand::PipeCommand(const char* cmd_line):Command(cmd_line){}
+ void PipeCommand::execute(){
+
+  string pp_command = string(_trim(this->command_line));
+  string first_command = pp_command.substr(0, pp_command.find_first_of("|"));
+  string second_command;
+  int channel;
+
+  //stderr
+  if(pp_command.find("|&") != string::npos){
+    second_command = pp_command.substr(pp_command.find_first_of("|&") + 2, pp_command.length());
+    channel = 2;
+  }
+
+  // stdout
+  else{
+     second_command = pp_command.substr(pp_command.find_first_of("|") + 1, pp_command.length());
+     channel = 1;    
+  }
+
+  // TODO: check if needed to deal with invalid arguments
+
+  int mypipe[2];
+  if(pipe(mypipe) == ERROR){
+    perror("smash error: pipe failed");
+    return;
+  }
+
+  pid_t pid1 = fork();
+  pid_t pid2;
+  if(pid1 == ERROR){
+    perror("smash error: fork failed");
+    return;
+  }
+
+  // child code - only writes
+  if(pid1 == 0){
+    setpgrp();
+    if(dup2(mypipe[1], channel) == ERROR){
+      perror("smash error: dup2 failed");
+      return;
+    }
+    if(close(mypipe[0]) == -1) {
+      perror("smash error: close failed");
+      return;
+    }
+
+    smash.executeCommand(_trim(first_command).c_str());
+    exit(0);
+  }
+
+  // father code 
+  else{
+    pid2 = fork();
+    if(pid2 == ERROR){
+      perror("smash error: fork failed");
+      return;
+    }
+    // child code - only reads
+    if(pid2 == 0){
+      if(dup2(mypipe[0], 0) == ERROR){
+        perror("smash error: dup2 failed");
+        return;
+      }
+      if(close(mypipe[0]) == ERROR){
+        perror("smash error: close failed");
+        return;
+      }
+      if(close(mypipe[1]) == ERROR){
+        perror("smash error: close failed");
+        return;
+      }
+      smash.executeCommand(second_command.c_str());
+      exit(0);
+
+    }
+  }
+
+  if(close(mypipe[0]) == ERROR){
+     perror("smash error: close failed");
+     return;
+  }
+  if(close(mypipe[1]) == -1){
+    perror("smash error: close failed");
+    return;
+  }
+
+  waitpid(pid1, NULL, WUNTRACED);
+  waitpid(pid2, NULL, WUNTRACED);
+
+ }
 
  RedirectionCommand::RedirectionCommand(const char *cmd_line):Command(cmd_line){}
 
@@ -265,6 +356,8 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
   string filename = string(rd_command).substr(string(rd_command).find_last_of(">") + 1, string::npos);
   
   Command *c = smash.CreateCommand(_trim(command).c_str());
+
+  // TODO: check if needed to deal with invalid arguments
   
 
   int fdin_dup = dup(1);
@@ -534,10 +627,12 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
 
   bool background = _isBackgroundComamnd(cmd_line);
 
-  if(cmd_s.find(">") != cmd_s.npos){
+  if(cmd_s.find_first_of("|") != string::npos){
+    return new PipeCommand(cmd_line); 
+  }
+  else if(cmd_s.find(">") != cmd_s.npos){
     return new RedirectionCommand(cmd_line);
   }
-
   else if (firstWord.compare("chprompt") == 0) {
     return new ChpromptCommand(cmd_line);
   }
@@ -550,7 +645,6 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("cd") == 0){
     return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
- 
   else if (firstWord.compare("jobs") == 0) {
     return new JobsCommand(cmd_line, smash.getJobsList());
   }
