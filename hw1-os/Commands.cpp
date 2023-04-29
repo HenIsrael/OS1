@@ -5,6 +5,8 @@
 #include <sstream>
 #include <sys/wait.h>
 #include <iomanip>
+#include <fstream>
+#include <sys/fcntl.h>
 #include "Commands.h"
 
 using namespace std;
@@ -169,7 +171,7 @@ bool Command::isExternal() const {
 
 BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
- ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(cmd_line) {
+ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(cmd_line) {
   this->external = true;
   this->background = is_back;
  }
@@ -220,7 +222,7 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
       if (result_exc == ERROR){
         perror("smash error: execvp failed");
         freeArgs(simple_args, COMMAND_MAX_ARGS);
-        exit(-1); // TODO : CHECK IF pwsOK.
+        exit(-1); 
       } 
 
       freeArgs(simple_args, COMMAND_MAX_ARGS);
@@ -248,9 +250,80 @@ BuiltInCommand::BuiltInCommand(const char* cmd_line) : Command(cmd_line){}
 
  }
 
+
+ RedirectionCommand::RedirectionCommand(const char *cmd_line):Command(cmd_line){}
+
+ void RedirectionCommand::execute(){
+
+  char* rd_command = new char[strlen(this->command_line) + 1];
+  strcpy(rd_command, this->command_line);
+  _removeBackgroundSign(rd_command);
+
+  string command = string(rd_command).substr(0, string(rd_command).find_first_of(">"));
+  string filename = string(rd_command).substr(string(rd_command).find_last_of(">") + 1, string::npos);
+  
+  Command *c = smash.CreateCommand(_trim(command).c_str());
+  
+
+  int fdin_dup = dup(1);
+
+  if (fdin_dup == ERROR) {
+    perror("smash error: dup failed");
+    delete c;
+    delete[] rd_command;
+    return;
+    }
+
+  if (close(1) == ERROR) {
+    perror("smash error: close failed");
+    delete c;
+    delete[] rd_command;
+    return;
+    }
+
+  int fdfile;
+  // redirection with append
+  if((string(rd_command).find_first_of(">")) + 1 == string(rd_command).find_last_of(">")){
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_APPEND, 0666);
+  }
+
+  // redirection with ovveride
+  else{
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  }
+
+  if(fdfile == ERROR){
+    perror("smash error: open failed");
+    dup2(fdin_dup, 1);
+    delete c;
+    delete[] rd_command;
+  }
+
+  c->execute();
+  if(close(1) == ERROR){
+    perror("smash error: close failed");
+    dup2(fdin_dup, 1);
+    delete c;
+    delete[] rd_command;
+  }
+
+  if(dup(fdin_dup) == ERROR){
+    perror("smash error: dup failed");
+  }
+
+
+  if(close(fdin_dup) == ERROR){
+    perror("smash error: close failed");
+  }
+
+  delete c;
+  delete[] rd_command;
+  
+ }
+
 // TODO: 
 //       [1] - class PipeCommand
-//       [2] - class RedirectionCommand
+
 
 
 
@@ -453,30 +526,17 @@ SmallShell::~SmallShell() {
 * Creates and returns a pointer to Command class which matches the given command line (cmd_line)
 */
 Command * SmallShell::CreateCommand(const char* cmd_line) {
-	// For example:
-/*
-  string cmd_s = _trim(string(cmd_line));
-  string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
-
-  if (firstWord.compare("pwd") == 0) {
-    return new GetCurrDirCommand(cmd_line);
-  }
-  else if (firstWord.compare("showpid") == 0) {
-    return new ShowPidCommand(cmd_line);
-  }
-  else if ...
-  .....
-  else {
-    return new ExternalCommand(cmd_line);
-  }
-  */
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
 
   bool background = _isBackgroundComamnd(cmd_line);
 
-  if (firstWord.compare("chprompt") == 0) {
+  if(cmd_s.find(">") != cmd_s.npos){
+    return new RedirectionCommand(cmd_line);
+  }
+
+  else if (firstWord.compare("chprompt") == 0) {
     return new ChpromptCommand(cmd_line);
   }
   else if (firstWord.compare("showpid") == 0) {
