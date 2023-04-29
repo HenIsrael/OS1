@@ -204,6 +204,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
       int result_exc = execv(args[0],args);
       if (result_exc == ERROR){
         perror("smash error: execv failed");
+        delete[] external_command;
         return;
       }
 
@@ -222,10 +223,12 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
       if (result_exc == ERROR){
         perror("smash error: execvp failed");
         freeArgs(simple_args, COMMAND_MAX_ARGS);
+        delete[] external_command;
         exit(-1); 
       } 
 
       freeArgs(simple_args, COMMAND_MAX_ARGS);
+      delete[] external_command;
     }
    }
   
@@ -247,7 +250,6 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
          
     }
   }
-
  }
 
 
