@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <iomanip>
 #include <fstream>
 #include <sys/fcntl.h>
@@ -117,6 +118,23 @@ bool isItNumber(const string &str){
 
   for(unsigned int i=1; i<str.length(); i++){
       if(isdigit(str[i]) == 0){
+          return false;
+      }
+  }
+
+  return true;
+}
+
+bool isItChmodNumber(const string &str){
+  if (str.empty()){
+    return false;
+  } 
+  if(str.length() > 3)
+  {
+    return false;
+  }
+  for(unsigned int i=0; i<str.length(); i++){
+      if(int(str[i]-'0') > 7){
           return false;
       }
   }
@@ -633,33 +651,43 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if(cmd_s.find(">") != cmd_s.npos){
     return new RedirectionCommand(cmd_line);
   }
-  else if (firstWord.compare("chprompt") == 0) {
+  else if (firstWord.compare("chprompt") == 0 || firstWord.compare("chprompt&") == 0) {
     return new ChpromptCommand(cmd_line);
   }
-  else if (firstWord.compare("showpid") == 0) {
+  else if (firstWord.compare("showpid") == 0 || firstWord.compare("showpid&") == 0) {
     return new ShowPidCommand(cmd_line);
   }
-  else if (firstWord.compare("pwd") == 0) {
+  else if (firstWord.compare("pwd") == 0 || firstWord.compare("pwd&") == 0) {
     return new GetCurrDirCommand(cmd_line);
   }
-  else if (firstWord.compare("cd") == 0){
+  else if (firstWord.compare("cd") == 0 || firstWord.compare("cd&") == 0 ){
     return new ChangeDirCommand(cmd_line, this->lastPwd);
   }
-  else if (firstWord.compare("jobs") == 0) {
+  else if (firstWord.compare("jobs") == 0 || firstWord.compare("jobs&") == 0 ) {
     return new JobsCommand(cmd_line, smash.getJobsList());
   }
-  else if (firstWord.compare("fg") == 0) {
+  else if (firstWord.compare("fg") == 0 || firstWord.compare("fg&") == 0) {
     return new ForegroundCommand(cmd_line, smash.getJobsList());
   }
-  else if (firstWord.compare("quit") == 0) {
+  else if (firstWord.compare("quit") == 0 || firstWord.compare("quit&") == 0) {
     return new QuitCommand(cmd_line, smash.getJobsList());
   }
-  else if (firstWord.compare("bg") == 0) {
+  else if (firstWord.compare("bg") == 0 || firstWord.compare("bg&") == 0) {
     return new BackgroundCommand(cmd_line, smash.getJobsList());
   }
-  else if (firstWord.compare("kill") == 0) {
+  else if (firstWord.compare("kill") == 0 || firstWord.compare("kill&") == 0) {
     return new KillCommand(cmd_line, smash.getJobsList());
-  }else if(!cmd_s.empty()) {
+  }
+  else if (firstWord.compare("setcore") == 0 || firstWord.compare("setcore&") == 0){
+    return new SetcoreCommand(cmd_line);
+  }
+  else if (firstWord.compare("getfileinfo") == 0 || firstWord.compare("getfileinfo&") == 0){
+    return new GetFileTypeCommand(cmd_line);
+  }
+  else if (firstWord.compare("chmod") == 0 || firstWord.compare("chmod&") == 0 ){
+    return new ChmodCommand(cmd_line);
+  }
+  else if(!cmd_s.empty()) {
     return new ExternalCommand(cmd_line, background);
   }
   
@@ -760,20 +788,13 @@ ChangeDirCommand::ChangeDirCommand(const char* cmd_line, char** plastPwd): Built
     else
     {
       status = back ;
-      std::cout << "im here1 "  << endl ;
-      std::cout << "im here addres "  << plastPwd<< endl ;
-      std::cout << "im here value "  << *plastPwd<< endl ;
-
       next_path = *plastPwd ;
-      std::cout << "back- plastPwd-next path in consructoe is " << next_path << endl ; 
     }
   } 
   else
   {
     this->status = ok_cd ; 
-    std::cout << "im here2 "  << endl ;
     next_path = path ; 
-    std::cout << "ok- plastPwd-next path in consructoe is " << next_path << endl ;
   }
 }
 
@@ -798,15 +819,13 @@ void ChangeDirCommand::execute()
   {
     if(chdir(next_path.c_str()) == ERROR)
     {
-      perror("chdir failed");
+      perror("smash error: chdir failed");
     }
     else
     {
       char* tmp = strdup(m_next_plastPwd.c_str());
 
       smash.setLastPwd( tmp );
-
-      std::cout << "lastPwd shell is" << *(smash.getLastPwd()) <<endl ;
       //delete tmp; // check if needed
     }
   }
@@ -819,6 +838,7 @@ ForegroundCommand::ForegroundCommand(const char* cmd_line, JobsList* jobs)
   if(this->params.size() == 0)
   {
     int max_job = this->jobs_list->MaxJobInMap();
+    //cout << "max job in map is " << max_job << endl;
     if(max_job == 0)
     {
       this->status = no_jobs;
@@ -869,9 +889,17 @@ void ForegroundCommand::execute()
   else
   {
     this->jobs_list->removeFinishedJobs();
+    int job_id;
+    if(params.size() ==0 )
+    {
+      job_id = this->jobs_list->MaxJobInMap();
+    }
+    else
+    {
+      job_id = stoi(this->params.at(0));
+    }
 
     std::map<int,JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs(); //here
-    int job_id = stoi(this->params.at(0));
     std::string command_to_print = jobs_list->getRunJobs().find(job_id)->second.getCommand();
     int job_pid = jobs_list->getRunJobs().find(job_id)->second.getPid();
 
@@ -1113,3 +1141,122 @@ void KillCommand::execute() {
   }
   cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
 }
+
+//---------------------------------special commands-------------------------------------------
+
+SetcoreCommand::SetcoreCommand(const char* cmd_line):BuiltInCommand(cmd_line){};
+
+void SetcoreCommand::execute() 
+{
+  if(this->params.size() != 2 )
+  {
+    cerr << "smash error: setcore: invalid arguments" << endl;
+  }
+  else if(!isItNumber(this->params.at(0)) || !isItNumber(this->params.at(1)) )
+  {
+    cerr << "smash error: setcore: invalid arguments" << endl;
+  }
+  else if(!(smash.getJobsList()->isJobExistsById(stoi(this->params.at(0)))))
+  {
+    cerr << "smash error: setcore: job-id " << this->params.at(0) << " does not exist" << endl;
+  }
+  else if((stoi(this->params.at(1))<1 ) || (stoi(this->params.at(1)) > sysconf(_SC_NPROCESSORS_ONLN)) )
+  {
+    cerr << "smash error: setcore: invalid core number" << endl;
+  }
+  else
+  {
+    //after error hadling
+    int pid = smash.getJobsList()->getRunJobs().find(stoi(this->params.at(0)))->second.getPid();
+    cpu_set_t cpuset ;
+    CPU_ZERO(&cpuset);
+    CPU_SET(stoi(this->params.at(1)), &cpuset);
+    if( sched_setaffinity(pid , sizeof(cpu_set_t) ,&cpuset) == ERROR)
+    {
+      perror("smash error: sched_setaffinity failed"); // check if correct
+    }
+  }
+}
+
+GetFileTypeCommand::GetFileTypeCommand(const char* cmd_line):BuiltInCommand(cmd_line){}
+
+void GetFileTypeCommand::execute()
+{
+  if( this->params.size() != 1)
+  {
+    cerr << "smash error: gettype: invalid aruments" << endl;
+  }
+  else
+  {
+  
+    struct stat sb;
+    string type; 
+
+    if(stat(this->params.at(0).c_str(),&sb) == ERROR)
+    {
+      perror("smash error: stat failed");
+      return;
+    }
+
+    if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISREG(sb.st_mode))
+    {
+      type = "regular file";
+    }
+    else if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))
+    {
+      type = "directory";
+    }
+    else if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISCHR(sb.st_mode))
+    {
+      type = "character device";
+    }
+    else if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISBLK(sb.st_mode))
+    {
+      type = "block device";
+    }
+    else if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISFIFO(sb.st_mode))
+    {
+      type = "FIFO";
+    }
+    else if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISLNK(sb.st_mode))
+    {
+      type = "symbolic link";
+    }
+    else if (stat(this->params.at(0).c_str(), &sb) == 0 && S_ISSOCK(sb.st_mode))
+    {
+      type = "socket";
+    }
+
+    int fileSize= sb.st_size;
+
+    cout << this->params.at(0) << "’s type is " << type <<" and takes up " << fileSize <<" bytes" << endl;
+
+  }
+}
+
+ChmodCommand::ChmodCommand(const char* cmd_line):BuiltInCommand(cmd_line){}
+
+void ChmodCommand::execute()
+{
+  if( this->params.size() != 2)
+  {
+    cerr << "smash error: chmod: invalid aruments" << endl;
+  }
+  else if (!isItNumber(this->params.at(0)))
+  {
+    cerr << "smash error: chmod: invalid aruments" << endl;
+  }
+  else if(! isItChmodNumber(this->params.at(0)) )
+  {
+    cerr << "smash error: chmod: invalid aruments" << endl;
+  }
+  else
+  {
+    if(chmod(this->params.at(1).c_str() , stoi(this->params.at(0),0,8) ) == ERROR)
+    {
+      perror("smash error: chmod failed");
+    }
+  }
+ // TODO to figure out
+}
+
