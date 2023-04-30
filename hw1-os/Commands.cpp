@@ -324,7 +324,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
         perror("smash error: close failed");
         return;
       }
-      smash.executeCommand(second_command.c_str());
+      smash.executeCommand(_trim(second_command).c_str());
       exit(0);
 
     }
@@ -334,7 +334,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
      perror("smash error: close failed");
      return;
   }
-  if(close(mypipe[1]) == -1){
+  if(close(mypipe[1]) == ERROR){
     perror("smash error: close failed");
     return;
   }
