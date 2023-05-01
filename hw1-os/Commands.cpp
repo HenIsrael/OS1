@@ -625,6 +625,7 @@ SmallShell::SmallShell() : jobs(JobsList()) {
 // TODO - add constructor to jobs
 lastPwd=new char*;
 *lastPwd=nullptr;
+this->fg_process = 0;
 //lastPwd=new char*;
 }
 
@@ -725,6 +726,10 @@ char** SmallShell::getLastPwd(){
 
 void SmallShell::setLastPwd(char *newPwd){
   (*this->lastPwd) = newPwd;
+}
+
+void SmallShell::setFgProcess(pid_t process_fg){
+    this->fg_process = process_fg;
 }
 
 //-----------------------Built in commands------------------------------------------------------------------------
