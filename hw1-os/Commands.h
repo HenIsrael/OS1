@@ -295,6 +295,7 @@ class SmallShell {
   char** getLastPwd();
   void setLastPwd(char *lastPwd);
   void setFgProcess(pid_t process_fg);
+  int getFgProcess() const;
 
 };
 

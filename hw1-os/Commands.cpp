@@ -734,6 +734,10 @@ void SmallShell::setFgProcess(pid_t process_fg){
     this->fg_process = process_fg;
 }
 
+int SmallShell::getFgProcess() const{
+  return this->fg_process;
+}
+
 //-----------------------Built in commands------------------------------------------------------------------------
 ChpromptCommand::ChpromptCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
 void ChpromptCommand::execute(){
