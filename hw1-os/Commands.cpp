@@ -257,6 +257,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
     int new_job = smash.getJobsList()->addJob(pid,this,false);
 
     if(!(this->isBackground())){
+      smash.setFgProcess(pid);
       waitpid(pid,nullptr,WUNTRACED);
     
 
@@ -265,6 +266,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
       }
 
       smash.getJobsList()->ChangeLastStoppedJob();
+      smash.setFgProcess(0);
          
     }
   }
@@ -912,6 +914,7 @@ void ForegroundCommand::execute()
 
     run_jobs.find(job_id)->second.setBackground(false);
     //this->jobs_list->getRunJobs().find(job_id)->second.setBackground(false); // here
+    smash.setFgProcess(job_pid);
 
     if( kill(job_pid, SIGCONT) == ERROR )
     {
@@ -926,6 +929,7 @@ void ForegroundCommand::execute()
     this->jobs_list->ChangeLastStoppedJob();
 
 }
+smash.setFgProcess(0);
 }
 
 
