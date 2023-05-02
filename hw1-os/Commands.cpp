@@ -734,7 +734,7 @@ void SmallShell::setFgProcess(pid_t process_fg){
     this->fg_process = process_fg;
 }
 
-int SmallShell::getFgProcess() const{
+pid_t SmallShell::getFgProcess() const{
   return this->fg_process;
 }
 
