@@ -266,7 +266,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
       }
 
       smash.getJobsList()->ChangeLastStoppedJob();
-      smash.setFgProcess(0);
+      smash.setFgProcess(-1);
          
     }
   }
@@ -627,7 +627,7 @@ SmallShell::SmallShell() : jobs(JobsList()) {
 // TODO - add constructor to jobs
 lastPwd=new char*;
 *lastPwd=nullptr;
-this->fg_process = 0;
+this->fg_process = -1;
 //lastPwd=new char*;
 }
 
@@ -730,8 +730,9 @@ void SmallShell::setLastPwd(char *newPwd){
   (*this->lastPwd) = newPwd;
 }
 
-void SmallShell::setFgProcess(pid_t process_fg){
+void SmallShell::setFgProcess(int process_fg){
     this->fg_process = process_fg;
+    printf("cuur fgid:%d\n",fg_process);
 }
 
 int SmallShell::getFgProcess() const{
@@ -923,6 +924,7 @@ void ForegroundCommand::execute()
     if( kill(job_pid, SIGCONT) == ERROR )
     {
       perror("smash error: kill failed");
+      smash.setFgProcess(-1); //check 
       return;
     }
 
@@ -933,7 +935,7 @@ void ForegroundCommand::execute()
     this->jobs_list->ChangeLastStoppedJob();
 
 }
-smash.setFgProcess(0);
+smash.setFgProcess(-1);
 }
 
 

@@ -274,7 +274,7 @@ class SmallShell {
   JobsList jobs;
   string prompt = "smash> ";
   char** lastPwd;
-  pid_t fg_process;
+  int fg_process;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
@@ -294,7 +294,7 @@ class SmallShell {
   //  TODO: TALI  add getters setters here!:)
   char** getLastPwd();
   void setLastPwd(char *lastPwd);
-  void setFgProcess(pid_t process_fg);
+  void setFgProcess(int process_fg);
   int getFgProcess() const;
 
 };
