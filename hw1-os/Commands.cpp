@@ -933,13 +933,18 @@ void ForegroundCommand::execute()
 
     run_jobs.find(job_id)->second.setStopped(false);
 
-    waitpid(job_pid , NULL , NULL); //check if correct
-    this->jobs_list->removeJobById(job_id);
+    waitpid(job_pid , nullptr , WUNTRACED); //check if correct
+
+    if(!run_jobs.find(job_id)->second.isStopped()){
+      this->jobs_list->removeJobById(job_id);
+    }
+    
     this->jobs_list->ChangeLastStoppedJob();
 
 }
 smash.setFgProcess(0);
 }
+
 
 
 JobsCommand::JobsCommand(const char* cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line), jobs_list(jobs) {}
@@ -1042,6 +1047,7 @@ void ForegroundCommand::execute(){
   this->jobs_list->ChangeLastStoppedJob();
 }
 */
+
 
 BackgroundCommand::BackgroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {}
 void BackgroundCommand::execute() {
