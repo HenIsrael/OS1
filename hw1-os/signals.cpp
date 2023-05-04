@@ -13,7 +13,7 @@ void ctrlZHandler(int sig_num) {
 void ctrlCHandler(int sig_num) {
   cout << "smash: got ctrl-C" << endl ;
  
-  if((smash.getFgProcess()) != -1 )
+  if((smash.getFgProcess()) != 0 )
   {
     if( kill(smash.getFgProcess() , SIGKILL ) == ERROR)
     {
@@ -25,6 +25,7 @@ void ctrlCHandler(int sig_num) {
 }
 
 void alarmHandler(int sig_num) {
+  
   // TODO: Add your implementation
 }
 

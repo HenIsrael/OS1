@@ -136,6 +136,7 @@ class JobsList {
     int pid;
     time_t start;
     Command* command;
+    int duration = 0; //new
 
   public:
     JobEntry(int jobId, int pid, Command* cmd);
@@ -191,6 +192,7 @@ TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
        [*] - JobEntry *getLastStoppedJob(int *jobId);
 */
 };
+
 
 class JobsCommand : public BuiltInCommand {
  // TODO: Add your data members
