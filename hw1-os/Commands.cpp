@@ -436,12 +436,6 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
   
  }
 
-// TODO: 
-//       [1] - class PipeCommand
-
-
-
-
 JobsList::JobEntry::JobEntry(int jobId, int pid, Command* cmd) : command(cmd){
   this->job_id = jobId;
   this->pid = pid;
@@ -818,6 +812,9 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   }
   else if (firstWord.compare("chmod") == 0 || firstWord.compare("chmod&") == 0 ){
     return new ChmodCommand(cmd_line);
+  }
+  else if (firstWord.compare("timeout") == 0) {
+    return new TimeoutCommand(cmd_line, background);
   }
   else if(!cmd_s.empty()) {
     return new ExternalCommand(cmd_line, background);
@@ -1416,4 +1413,11 @@ void ChmodCommand::execute()
   }
  // TODO to figure out
 }
+
+TimeoutCommand::TimeoutCommand(const char *cmd_line, bool is_back) : Command(cmd_line) {
+    this->background = is_back;
+    this->external = true;
+}
+
+
 

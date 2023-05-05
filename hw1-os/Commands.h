@@ -264,11 +264,11 @@ class BackgroundCommand : public BuiltInCommand {
   void execute() override;
 };
 
-class TimeoutCommand : public BuiltInCommand {
+class TimeoutCommand : public Command {
 /* Bonus */
 // TODO: Add your data members
  public:
-  explicit TimeoutCommand(const char* cmd_line);
+  explicit TimeoutCommand(const char* cmd_line, bool is_back);
   virtual ~TimeoutCommand() {}
   void execute() override;
 };
