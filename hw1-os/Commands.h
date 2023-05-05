@@ -115,6 +115,7 @@ class ShowPidCommand : public BuiltInCommand {
 };
 
 class JobsList;
+class TimeList;
 class QuitCommand : public BuiltInCommand {
 private:
   bool kill_bool = false ;
@@ -190,6 +191,45 @@ TODO : [*] - ???void addJob(Command* cmd, bool isStopped = false);???
        [*] - JobEntry * getLastJob(int* lastJobId);
        [*] - JobEntry *getLastStoppedJob(int *jobId);
 */
+};
+
+class TimeList{
+  public:
+    class TimeEntry{
+    private:
+      int id = 0;
+      int job_id = 0;
+      int pid = 0;
+      int time_of_dur = 0;
+      char *command;
+      time_t time_of_command_came;
+    public:
+      TimeEntry(int id, int jobID, int pid, int timeOfDur, char *command);
+      int getJobId() const;
+      int getPid() const;
+      int getTimeOfDur() const;
+      char* getCommand() const;
+      time_t getTimeOfCommandCame() const;
+      ~TimeEntry() {};
+    };
+
+  private:
+    int maxTimeId = 0;
+    map<int, TimeEntry> timeMap;
+  
+  public:
+    TimeList()=default;
+    int getMaxId() const;
+    int getMaxKeyInMap() const;
+    void setMaxTimeId(int maxTimeEnteryId);
+    int addTime(int job_id, int pid, int timeOfDur, char *command);
+    void removeTimeById(int time_entery_Id);
+    int Get_TimeId_Of_Finished_Timeout(time_t now);
+    int Get_JobId_Of_Finished_Timeout(time_t now);
+    void changeMaxTimeId();
+    void What_is_the_Next_Timeout(time_t now);
+    const std::map<int, TimeEntry> &getTimeMap() const;
+    ~TimeList() {};
 };
 
 class JobsCommand : public BuiltInCommand {
@@ -272,6 +312,7 @@ class SmallShell {
   // TODO: Add your data members
   SmallShell();
   JobsList jobs;
+  TimeList times;
   string prompt = "smash> ";
   char** lastPwd;
   pid_t fg_process;
@@ -291,6 +332,7 @@ class SmallShell {
   string getPrompt();
   void setPrompt(string prompt);
   JobsList* getJobsList();
+  TimeList* getTimeList();
   //  TODO: TALI  add getters setters here!:)
   char** getLastPwd();
   void setLastPwd(char *lastPwd);
