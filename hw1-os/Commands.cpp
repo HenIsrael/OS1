@@ -488,7 +488,7 @@ void JobsList::JobEntry::setBackground(bool background){
   return this->command->setBackground(background);          
 }
 
-// TODO : add class JobsList code here ->
+
 
 int JobsList::addJob(int pid, Command *cmd, bool stopped) {
     int new_job_id = getMaxFromJobs();                                           
@@ -621,6 +621,135 @@ void JobsList::ChangeLastStoppedJob() {
 }
 
 
+TimeList::TimeEntry::TimeEntry(int id, int jobID, int pid, int timeOfDur, char *command) : id(id), job_id(jobID), pid(pid), time_of_dur(timeOfDur), command(command){
+  this->time_of_command_came = time(nullptr);
+  if(this->time_of_command_came == ERROR){
+    perror("smash error: time failed");
+  }
+}
+
+int TimeList::TimeEntry::getJobId() const{
+  return this->job_id;
+}
+
+int TimeList::TimeEntry::getPid() const {
+  return this->pid;
+}
+
+int TimeList::TimeEntry::getTimeOfDur() const{
+  return this->time_of_dur;
+}
+
+char* TimeList::TimeEntry::getCommand() const{
+  return this->command;
+}
+
+time_t TimeList::TimeEntry::getTimeOfCommandCame() const{
+  return this->time_of_command_came;
+}
+
+
+int TimeList::getMaxId() const{
+  return this->maxTimeId;
+}
+
+void TimeList::setMaxTimeId(int maxTimeEnteryId){
+  this->maxTimeId = maxTimeEnteryId;
+}
+
+int TimeList::addTime(int job_id, int pid, int timeOfDur, char *command){
+  int new_time_id = getMaxId();
+  new_time_id += 1;
+
+  TimeEntry newTimeEntery(new_time_id, job_id, pid, timeOfDur, command);
+  this->timeMap.insert(std::pair<int, TimeEntry>(new_time_id, newTimeEntery));
+
+  setMaxTimeId(new_time_id);
+  return new_time_id;
+}
+
+void TimeList::removeTimeById(int time_entery_Id){
+  this->timeMap.erase(time_entery_Id);
+  int max_time_id = getMaxKeyInMap();
+  setMaxTimeId(max_time_id);
+}
+
+int TimeList::Get_TimeId_Of_Finished_Timeout(time_t now){
+
+  for (auto &pair: this->timeMap) {
+    int until_finish = pair.second.getTimeOfDur() - difftime(now, pair.second.getTimeOfCommandCame());
+    if (until_finish <= 0) {
+      return pair.first;
+    }
+  }
+
+    return -1;
+}
+
+int TimeList::Get_JobId_Of_Finished_Timeout(time_t now){
+
+  for (auto &pair: this->timeMap) {
+    int until_finished = pair.second.getTimeOfDur() - difftime(now, pair.second.getTimeOfCommandCame());
+    if (until_finished <= 0) {
+      return pair.second.getJobId();
+    }
+  }
+
+    return -1; 
+}
+
+int TimeList::getMaxKeyInMap() const{
+
+  if (this->timeMap.size() == 0){
+    return 0;
+  }
+
+  int max_time_id = 0;
+  for(const auto &pair : this->timeMap){
+    if (pair.first > max_time_id){
+      max_time_id = pair.first;
+    }
+  }
+  return max_time_id;
+}
+
+void TimeList::changeMaxTimeId() {
+
+  if (this->timeMap.size() == 0) {
+    this->maxTimeId = 0;
+  }
+
+  int max_time_Id = 0;
+  for (auto pair : this->timeMap) {
+    if (pair.first > max_time_Id) {
+      max_time_Id = pair.first;
+    }
+  }
+  this->maxTimeId = max_time_Id;
+}
+
+void TimeList::What_is_the_Next_Timeout(time_t now) {
+
+  if (this->timeMap.empty()) {
+    return;
+  }
+  int next_timeout_command =-1;
+
+  for (auto &pair : this->timeMap) {
+    int is_it_the_next_timeout_command = pair.second.getTimeOfDur() - difftime(now, pair.second.getTimeOfCommandCame());
+    if (is_it_the_next_timeout_command < next_timeout_command || next_timeout_command == -1) {
+      next_timeout_command = is_it_the_next_timeout_command;
+    }
+  }
+  alarm(next_timeout_command);
+}
+
+const map<int, TimeList::TimeEntry> &TimeList::getTimeMap() const {
+  return this->timeMap;   
+}
+
+
+
 SmallShell::SmallShell() : jobs(JobsList()) {
 // TODO: add your implementation
 // TODO- create malloc to adress that will point to null for lastPwd
@@ -724,6 +853,10 @@ void SmallShell::setPrompt(string newprompt){
 
 JobsList* SmallShell::getJobsList(){
   return &(this->jobs);
+}
+
+TimeList* SmallShell::getTimeList(){
+  return &(this->times);
 }
 
 char** SmallShell::getLastPwd(){
