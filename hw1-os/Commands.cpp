@@ -865,7 +865,7 @@ void SmallShell::setLastPwd(char *newPwd){
   (*this->lastPwd) = newPwd;
 }
 
-void SmallShell::setFgProcess(pid_t process_fg){
+void SmallShell::setFgProcess(int process_fg){
     this->fg_process = process_fg;
 }
 
@@ -1058,6 +1058,7 @@ void ForegroundCommand::execute()
     if( kill(job_pid, SIGCONT) == ERROR )
     {
       perror("smash error: kill failed");
+      smash.setFgProcess(0); //check 
       return;
     }
 

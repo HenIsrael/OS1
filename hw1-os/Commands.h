@@ -137,6 +137,7 @@ class JobsList {
     int pid;
     time_t start;
     Command* command;
+    int duration = 0; //new
 
   public:
     JobEntry(int jobId, int pid, Command* cmd);
@@ -315,7 +316,7 @@ class SmallShell {
   TimeList times;
   string prompt = "smash> ";
   char** lastPwd;
-  pid_t fg_process;
+  int fg_process;
  public:
   Command *CreateCommand(const char* cmd_line);
   SmallShell(SmallShell const&)      = delete; // disable copy ctor
