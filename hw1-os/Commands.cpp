@@ -229,14 +229,14 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
     // simple
     }else{
 
-      string command = string(external_command).substr(0, string(external_command).find_first_of(" \n"));
+      string command = _trim(string(external_command)).substr(0, _trim(string(external_command)).find_first_of(" \n"));
 
       char ** simple_args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
       int num_of_args = _parseCommandLine(external_command, simple_args);
       
       simple_args[num_of_args] = nullptr;
-
-      int result_exc = execvp(command.c_str(), simple_args); 
+      
+      int result_exc = execvp(_trim(command).c_str(), simple_args); 
 
       if (result_exc == ERROR){
         perror("smash error: execvp failed");
