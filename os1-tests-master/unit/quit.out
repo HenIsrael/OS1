@@ -1,0 +1,11 @@
+smash> smash> smash> /tmp/smash_test
+smash> smash pid is 32695
+smash> smash: got ctrl-Z
+smash: process 32714 was stopped
+smash> [1] sleep 100& : 32705 0 secs
+[2] sleep 50& : 32710 0 secs
+[3] sleep 20 : 32714 0 secs (stopped)
+smash> smash: sending SIGKILL signal to 3 jobs:
+32705: sleep 100&
+32710: sleep 50&
+32714: sleep 20

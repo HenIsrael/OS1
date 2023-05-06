@@ -813,9 +813,11 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("chmod") == 0 || firstWord.compare("chmod&") == 0 ){
     return new ChmodCommand(cmd_line);
   }
+  /*
   else if (firstWord.compare("timeout") == 0) {
     return new TimeoutCommand(cmd_line, background);
   }
+  */
   else if(!cmd_s.empty()) {
     return new ExternalCommand(cmd_line, background);
   }
@@ -865,7 +867,7 @@ void SmallShell::setLastPwd(char *newPwd){
   (*this->lastPwd) = newPwd;
 }
 
-void SmallShell::setFgProcess(int process_fg){
+void SmallShell::setFgProcess(pid_t process_fg){
     this->fg_process = process_fg;
 }
 
@@ -1058,7 +1060,6 @@ void ForegroundCommand::execute()
     if( kill(job_pid, SIGCONT) == ERROR )
     {
       perror("smash error: kill failed");
-      smash.setFgProcess(0); //check 
       return;
     }
 
@@ -1102,7 +1103,7 @@ QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cm
     {
       //std::cout << "im here bitches" <<endl;
       int map_size = this->jobs_list->getRunJobs().size();
-      std::cout << "sending SIGKILL signal to " << map_size <<" jobs" <<endl; 
+      std::cout << "smash: sending SIGKILL signal to " << map_size <<" jobs:" <<endl; 
       map<int, JobsList::JobEntry>::iterator it;
       map<int, JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs();
 
@@ -1415,10 +1416,12 @@ void ChmodCommand::execute()
  // TODO to figure out
 }
 
+/*
 TimeoutCommand::TimeoutCommand(const char *cmd_line, bool is_back) : Command(cmd_line) {
     this->background = is_back;
     this->external = true;
 }
+*/
 
 
 
