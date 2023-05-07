@@ -22,7 +22,7 @@ void ctrlZHandler(int sig_num) {
       return;
     }
 
-    std::cout <<"smash: process " << fgprocess << " was stopped" << std::endl;
+    std::cout << "smash: process " << fgprocess << " was stopped" << std::endl;
 
   }
 }
@@ -38,7 +38,7 @@ void ctrlCHandler(int sig_num) {
       perror("smash error: kill failed");
       return;
     }
-    cout << " smash: process " << smash.getFgProcess() << " was killed" << endl ;
+    cout << "smash: process " << smash.getFgProcess() << " was killed" << endl ;
   }
 }
 
