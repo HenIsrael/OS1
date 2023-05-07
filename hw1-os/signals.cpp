@@ -22,7 +22,7 @@ void ctrlZHandler(int sig_num) {
       return;
     }
 
-    std::cout << "smash: process " << fgprocess << " was stopped" << std::endl;
+    std::cout <<"smash: process " << fgprocess << " was stopped" << std::endl;
 
   }
 }
