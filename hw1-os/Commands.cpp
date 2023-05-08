@@ -777,6 +777,8 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
 
   bool background = _isBackgroundComamnd(cmd_line);
+  char* cmd_line_no_am = strdup(cmd_line) ;
+  _removeBackgroundSign(cmd_line_no_am);
 
   if(cmd_s.find_first_of("|") != string::npos){
     return new PipeCommand(cmd_line); 
@@ -786,40 +788,40 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     return new RedirectionCommand(cmd_line);
   }
   else if (firstWord.compare("chprompt") == 0 || firstWord.compare("chprompt&") == 0) {
-    return new ChpromptCommand(cmd_line);
+    return new ChpromptCommand(cmd_line_no_am);
   }
   else if (firstWord.compare("showpid") == 0 || firstWord.compare("showpid&") == 0) {
-    return new ShowPidCommand(cmd_line);
+    return new ShowPidCommand(cmd_line_no_am);
   }
   else if (firstWord.compare("pwd") == 0 || firstWord.compare("pwd&") == 0) {
-    return new GetCurrDirCommand(cmd_line);
+    return new GetCurrDirCommand(cmd_line_no_am);
   }
   else if (firstWord.compare("cd") == 0 || firstWord.compare("cd&") == 0 ){
-    return new ChangeDirCommand(cmd_line, this->lastPwd);
+    return new ChangeDirCommand(cmd_line_no_am, this->lastPwd);
   }
   else if (firstWord.compare("jobs") == 0 || firstWord.compare("jobs&") == 0 ) {
-    return new JobsCommand(cmd_line, smash.getJobsList());
+    return new JobsCommand(cmd_line_no_am, smash.getJobsList());
   }
   else if (firstWord.compare("fg") == 0 || firstWord.compare("fg&") == 0) {
-    return new ForegroundCommand(cmd_line, smash.getJobsList());
+    return new ForegroundCommand(cmd_line_no_am, smash.getJobsList());
   }
   else if (firstWord.compare("quit") == 0 || firstWord.compare("quit&") == 0) {
-    return new QuitCommand(cmd_line, smash.getJobsList());
+    return new QuitCommand(cmd_line_no_am, smash.getJobsList());
   }
   else if (firstWord.compare("bg") == 0 || firstWord.compare("bg&") == 0) {
-    return new BackgroundCommand(cmd_line, smash.getJobsList());
+    return new BackgroundCommand(cmd_line_no_am, smash.getJobsList());
   }
   else if (firstWord.compare("kill") == 0 || firstWord.compare("kill&") == 0) {
-    return new KillCommand(cmd_line, smash.getJobsList());
+    return new KillCommand(cmd_line_no_am, smash.getJobsList());
   }
   else if (firstWord.compare("setcore") == 0 || firstWord.compare("setcore&") == 0){
-    return new SetcoreCommand(cmd_line);
+    return new SetcoreCommand(cmd_line_no_am);
   }
   else if (firstWord.compare("getfileinfo") == 0 || firstWord.compare("getfileinfo&") == 0){
-    return new GetFileTypeCommand(cmd_line);
+    return new GetFileTypeCommand(cmd_line_no_am);
   }
   else if (firstWord.compare("chmod") == 0 || firstWord.compare("chmod&") == 0 ){
-    return new ChmodCommand(cmd_line);
+    return new ChmodCommand(cmd_line_no_am);
   }
   /*
   else if (firstWord.compare("timeout") == 0) {
