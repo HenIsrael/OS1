@@ -403,12 +403,12 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
   int fdfile;
   // redirection with append
   if((string(rd_command).find_first_of(">")) + 1 == string(rd_command).find_last_of(">")){
-    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_APPEND, 0666);
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_APPEND, 0655);
   }
 
   // redirection with ovveride
   else{
-    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0655);
   }
 
   if(fdfile == ERROR){
@@ -775,11 +775,13 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
 
   string cmd_s = _trim(string(cmd_line));
   string firstWord = cmd_s.substr(0, cmd_s.find_first_of(" \n"));
-
   bool background = _isBackgroundComamnd(cmd_line);
-  char* cmd_line_no_am = strdup(cmd_line) ;
-  _removeBackgroundSign(cmd_line_no_am);
-
+  char* cmd_line_no_am = nullptr;
+  if((signed) strlen(cmd_line) != 0)
+  {
+    cmd_line_no_am = strdup(cmd_line) ;
+    _removeBackgroundSign(cmd_line_no_am);
+  }
   if(cmd_s.find_first_of("|") != string::npos){
     return new PipeCommand(cmd_line); 
   }
@@ -1121,13 +1123,18 @@ QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cm
       map<int, JobsList::JobEntry>::iterator it;
       map<int, JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs();
 
-      for (it = run_jobs.begin(); it != run_jobs.end(); it++)
-      {
+      
+        for (it = run_jobs.begin(); it != run_jobs.end(); it++)
+        {
         int job_id = it->second.getJobId();
         std::cout << it->second.getPid() << ": " << it->second.getCommand() <<endl;
-        kill( it->second.getPid() ,SIGKILL );
+        if(kill( it->second.getPid() ,SIGKILL ) == ERROR)
+        {
+          perror("smash error: kill failed");
+          return;
+        }
         this->jobs_list->removeJobById(job_id);
-      }
+        }
     }
     //kill(getpid() ,SIGKILL );
     exit(0);
@@ -1286,7 +1293,7 @@ void KillCommand::execute() {
     cerr << "smash error: kill: job-id " << job_id << " does not exist" << endl;
     return;
   }
-  if(sig_num >= 0){
+  if(sig_num >= 0 || sig_num < -64){
      cerr << "smash error: kill: invalid arguments" << endl;
      return;
   }
