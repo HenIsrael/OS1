@@ -240,6 +240,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
 
       if (result_exc == ERROR){
         perror("smash error: execvp failed");
+        cout << "hiiiiiiii" << endl;
         freeArgs(simple_args, COMMAND_MAX_ARGS);
         delete[] external_command;
         exit(-1); 
@@ -247,19 +248,20 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
 
       freeArgs(simple_args, COMMAND_MAX_ARGS);
       delete[] external_command;
+ 
     }
    }
   
   // father code
 
   else{
+    
     smash.getJobsList()->removeFinishedJobs();
     int new_job = smash.getJobsList()->addJob(pid,this,false);
 
     if(!(this->isBackground())){
       smash.setFgProcess(pid);
       waitpid(pid,nullptr,WUNTRACED);
-    
 
       if(!smash.getJobsList()->getRunJobs().find(new_job)->second.isStopped()){
         smash.getJobsList()->removeJobById(new_job);
@@ -268,7 +270,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
       smash.getJobsList()->ChangeLastStoppedJob();
       smash.setFgProcess(0);
          
-    }
+    }  
   }
  }
 
@@ -373,16 +375,19 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
   _removeBackgroundSign(rd_command);
 
   string command = string(rd_command).substr(0, string(rd_command).find_first_of(">"));
-  string filename = string(rd_command).substr(string(rd_command).find_last_of(">") + 1, string::npos);
+  string filename = _trim(string(rd_command).substr(string(rd_command).find_last_of(">") + 1, string::npos));
+
+  //cout << command << endl;
+  //cout << filename << endl;
   
   Command *c = smash.CreateCommand(_trim(command).c_str());
 
   // TODO: check if needed to deal with invalid arguments
   
 
-  int fdin_dup = dup(1);
+  int fdout_dup = dup(1);
 
-  if (fdin_dup == ERROR) {
+  if (fdout_dup == ERROR) {
     perror("smash error: dup failed");
     delete c;
     delete[] rd_command;
@@ -409,25 +414,26 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
 
   if(fdfile == ERROR){
     perror("smash error: open failed");
-    dup2(fdin_dup, 1);
+    dup2(fdout_dup, 1);
     delete c;
     delete[] rd_command;
   }
 
-  c->execute();
+  smash.executeCommand(c->getCommandLine());
+  
   if(close(1) == ERROR){
     perror("smash error: close failed");
-    dup2(fdin_dup, 1);
+    dup2(fdout_dup, 1);
     delete c;
     delete[] rd_command;
   }
 
-  if(dup(fdin_dup) == ERROR){
+  if(dup(fdout_dup) == ERROR){
     perror("smash error: dup failed");
   }
 
 
-  if(close(fdin_dup) == ERROR){
+  if(close(fdout_dup) == ERROR){
     perror("smash error: close failed");
   }
 
@@ -776,6 +782,7 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
     return new PipeCommand(cmd_line); 
   }
   else if(cmd_s.find(">") != cmd_s.npos){
+    //cout << "ENTER TO RE" << endl;
     return new RedirectionCommand(cmd_line);
   }
   else if (firstWord.compare("chprompt") == 0 || firstWord.compare("chprompt&") == 0) {

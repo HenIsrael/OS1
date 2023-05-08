@@ -4,4 +4,59 @@ random2.txt
 sub1
 sub2
 sub3
-smash> 
+smash> smash> test_redirect
+smash> smash> again_redirect
+smash> smash> again_redirect
+test_redirect
+smash> smash> smash pid is 6355
+smash> smash> smash pid is 6355
+smash pid is 6355
+smash> smash> smash pid is 6355
+smash> my_sleep
+mypid
+new
+random1.txt
+random2.txt
+sub1
+sub2
+sub3
+smash> smash> smash> [1] sleep 100& : 6396 0 secs
+smash> smash error: kill: invalid arguments
+smash> smash> smash error: kill: invalid arguments
+smash> smash> k
+my_sleep
+mypid
+new
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> smash error: open failed: No such file or directory
+smash error: execvp failed: No such file or directory
