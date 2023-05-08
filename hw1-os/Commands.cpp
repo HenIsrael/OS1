@@ -751,6 +751,7 @@ SmallShell::SmallShell() : jobs(JobsList()) {
 lastPwd=new char*;
 *lastPwd=nullptr;
 this->fg_process = 0;
+this->pid = getpid();
 //lastPwd=new char*;
 }
 
@@ -850,6 +851,10 @@ void SmallShell::setPrompt(string newprompt){
   this->prompt = newprompt;
 }
 
+pid_t SmallShell::getPid() const {
+    return this->pid;
+}
+
 JobsList* SmallShell::getJobsList(){
   return &(this->jobs);
 }
@@ -893,7 +898,7 @@ ShowPidCommand::ShowPidCommand(const char* cmd_line): BuiltInCommand(cmd_line){}
 
 void ShowPidCommand::execute()
 {
-  std::cout << "smash pid is "<< ::getpid() << endl;
+  std::cout << "smash pid is "<< ::smash.getPid() << endl;
 }
 
 GetCurrDirCommand::GetCurrDirCommand(const char* cmd_line) : BuiltInCommand(cmd_line){}
