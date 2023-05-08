@@ -313,6 +313,7 @@ class SmallShell {
   SmallShell();
   JobsList jobs;
   TimeList times;
+  pid_t pid; 
   string prompt = "smash> ";
   char** lastPwd;
   pid_t fg_process;
@@ -331,6 +332,7 @@ class SmallShell {
   // TODO: add extra methods as needed
   string getPrompt();
   void setPrompt(string prompt);
+  pid_t getPid() const;
   JobsList* getJobsList();
   TimeList* getTimeList();
   //  TODO: TALI  add getters setters here!:)
