@@ -8,10 +8,10 @@ smash> smash> test_redirect
 smash> smash> again_redirect
 smash> smash> again_redirect
 test_redirect
-smash> smash> smash pid is 6355
-smash> smash> smash pid is 6355
-smash pid is 6355
-smash> smash> smash pid is 6355
+smash> smash> smash pid is 13101
+smash> smash> smash pid is 13101
+smash pid is 13101
+smash> smash> smash pid is 13101
 smash> my_sleep
 mypid
 new
@@ -20,7 +20,7 @@ random2.txt
 sub1
 sub2
 sub3
-smash> smash> smash> [1] sleep 100& : 6396 0 secs
+smash> smash> smash> [1] sleep 100& : 13134 0 secs
 smash> smash error: kill: invalid arguments
 smash> smash> smash error: kill: invalid arguments
 smash> smash> k
@@ -59,4 +59,104 @@ sub2
 sub3
 t
 smash> smash error: open failed: No such file or directory
-smash error: execvp failed: No such file or directory
+smash> smash error: open failed: No such file or directory
+smash> before
+smash> again_redirect
+test_redirect
+smash> smash> smash error: open failed: Permission denied
+smash> smash> k
+my_sleep
+mypid
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> smash> smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> smash> smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+smash> smash> smash> k
+my_sleep
+mypid
+new
+p
+random1.txt
+random2.txt
+s
+sub1
+sub2
+sub3
+t
+test
+smash> smash> 0
+2
+4
+Done: 6
+smash> smash> smash error: kill: job-id 2 does not exist
+smash> 0
+2
+4
+6
+Done: 8
+smash> smash: sending SIGKILL signal to 1 jobs:
+13134: sleep 100&

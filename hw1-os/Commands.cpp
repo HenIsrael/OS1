@@ -240,7 +240,6 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
 
       if (result_exc == ERROR){
         perror("smash error: execvp failed");
-        cout << "hiiiiiiii" << endl;
         freeArgs(simple_args, COMMAND_MAX_ARGS);
         delete[] external_command;
         exit(-1); 
@@ -417,6 +416,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
     dup2(fdout_dup, 1);
     delete c;
     delete[] rd_command;
+    return;
   }
 
   smash.executeCommand(c->getCommandLine());
