@@ -825,11 +825,11 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("chmod") == 0 || firstWord.compare("chmod&") == 0 ){
     return new ChmodCommand(cmd_line_no_am);
   }
-  /*
+  
   else if (firstWord.compare("timeout") == 0) {
     return new TimeoutCommand(cmd_line, background);
   }
-  */
+  
   else if(!cmd_s.empty()) {
     return new ExternalCommand(cmd_line, background);
   }
@@ -1401,12 +1401,106 @@ void ChmodCommand::execute()
  // TODO to figure out
 }
 
-/*
+
 TimeoutCommand::TimeoutCommand(const char *cmd_line, bool is_back) : Command(cmd_line) {
     this->background = is_back;
     this->external = true;
 }
-*/
+
+void TimeoutCommand::execute(){
+
+  // TODO: check about valid arguments or jobs already finished
+
+  pid_t pid = fork();
+
+  if(pid == ERROR){
+    perror("smash error: fork failed");
+    return;
+  }
+
+  int durr = stoi(this->params.at(0)); // TODO : 
+
+  // child code
+   if(pid == 0){
+
+    setpgrp();
+
+    char* external_command = new char[strlen(this->command_line) + 1];
+    strcpy(external_command, this->command_line);
+    _trim(external_command);
+    _removeBackgroundSign(external_command);
+
+    string time_command = _trim(string(external_command).substr(string(external_command).find_first_of(this->params.at(0)) + this->params.at(0).size(), string(external_command).length()));
+    
+    char params_of_time_cmd[COMMAND_ARGS_MAX_LENGTH] = {""};
+    strcpy(params_of_time_cmd, time_command.c_str());
+    _removeBackgroundSign(params_of_time_cmd);
+
+    char* args[] = {"/bin/bash", "-c",params_of_time_cmd, nullptr};
+
+    // complex
+    if(!this->params.empty() && (this->params.at(0).at(0) == '*' || this->params.at(0).at(0) == '?')){
+      int result_exc = execv(args[0],args);
+      if (result_exc == ERROR){
+        perror("smash error: execv failed");
+        delete[] external_command;
+        return;
+      }
+
+    // simple
+    }else{
+
+      string command = _trim(string(external_command)).substr(0, _trim(string(external_command)).find_first_of(" \n"));
+
+      char ** simple_args = (char**)malloc(sizeof(char*) * COMMAND_MAX_ARGS);
+      int num_of_args = _parseCommandLine(external_command, simple_args);
+      
+      simple_args[num_of_args] = nullptr;
+      int result_exc = execvp(_trim(command).c_str(), simple_args); 
+
+      if (result_exc == ERROR){
+        perror("smash error: execvp failed");
+        freeArgs(simple_args, COMMAND_MAX_ARGS);
+        delete[] external_command;
+        exit(-1); 
+      } 
+
+      freeArgs(simple_args, COMMAND_MAX_ARGS);
+      delete[] external_command;
+ 
+    }
+   }
+  
+  // father code
+
+  else{
+    
+    smash.getJobsList()->removeFinishedJobs();
+    int new_job = smash.getJobsList()->addJob(pid,this,false);
+ 
+    int time_id = smash.getTimeList()->addTime(new_job, pid, durr, this->command_line); 
+
+    smash.getTimeList()->What_is_the_Next_Timeout(time(nullptr));
+
+    if(!(this->isBackground())){
+      smash.setFgProcess(pid);
+      waitpid(pid,nullptr,WUNTRACED);
+
+      if(!smash.getJobsList()->getRunJobs().find(new_job)->second.isStopped()){
+        smash.getJobsList()->removeJobById(new_job);
+        smash.getTimeList()->removeTimeById(time_id);
+      }
+
+      smash.getJobsList()->ChangeLastStoppedJob();
+      smash.setFgProcess(0);
+         
+    }  
+  }
+ }
+
+
+
+
 
 
 

@@ -21,7 +21,7 @@ enum error_status_fg {no_jobs , job_not_exist , invalid_arguments , ok };
 class Command {
 // TODO: Add your data members
  protected:
-  const char* command_line ;
+  char* command_line ;
   vector<string> params; 
   bool external = false;
   bool stopped = false;
