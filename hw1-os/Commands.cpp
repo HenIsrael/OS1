@@ -403,12 +403,12 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
   int fdfile;
   // redirection with append
   if((string(rd_command).find_first_of(">")) + 1 == string(rd_command).find_last_of(">")){
-    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_APPEND, 0655);
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_APPEND, 0666);
   }
 
   // redirection with ovveride
   else{
-    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0655);
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 06666);
   }
 
   if(fdfile == ERROR){
