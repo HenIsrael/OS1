@@ -1288,6 +1288,7 @@ SetcoreCommand::SetcoreCommand(const char* cmd_line):BuiltInCommand(cmd_line){};
 
 void SetcoreCommand::execute() 
 {
+  //printf(command_line);
   if(this->params.size() != 2 )
   {
     cerr << "smash error: setcore: invalid arguments" << endl;
