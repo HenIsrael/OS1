@@ -1141,67 +1141,6 @@ QuitCommand::QuitCommand(const char* cmd_line, JobsList* jobs):BuiltInCommand(cm
   }
 
 
-
-/*
-ForegroundCommand::ForegroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {} 
-void ForegroundCommand::execute(){
-  if(this->params.size() >1){
-    cerr << "smash error: fg: invalid arguments" << endl;
-    return;
-  }
-
-  map<int, JobsList::JobEntry> run_jobs = this->jobs_list->getRunJobs();
-  int job_id;
-
-  if(this->params.empty()){
-    if(run_jobs.size() == 0){
-      cerr << "smash error: fg: jobs list is empty" << endl;
-      return;
-    }
-    //TODO: maybe need to remove finished jobs before?
-    job_id = this->jobs_list->MaxJobInMap();
-  }
-  else {
-    if(!isItNumber(this->params.at(0))){
-    
-      cerr << "smash error: fg: invalid arguments" << endl;
-      return; 
-    }
-
-    int job_required = stoi(this->params.at(0));
-    this->jobs_list->removeFinishedJobs();
-
-    if(run_jobs.find(job_required) == run_jobs.end()){
-      cerr << "smash error: fg: job-id " << job_required << " does not exist" << endl;
-      return;
-    }
-
-    job_id = job_required;
-  }
-
-  int job_pid = run_jobs.find(job_id)->second.getPid();
-  string command_line = run_jobs.find(job_id)->second.getCommand();
-
-  cout << command_line << " : "  << job_pid << endl;
-
-  run_jobs.find(job_id)->second.setBackground(false);
-  if(killpg(job_pid, SIGCONT) == ERROR){
-    perror("smash error: kill failed");
-    return;
-  }
-
-  run_jobs.find(job_id)->second.setStopped(false);
-  waitpid(job_pid, nullptr, WUNTRACED);
-
-  if(!run_jobs.find(job_id)->second.isStopped()) {
-      this->jobs_list->removeJobById(job_id);
-  }
-
-  this->jobs_list->ChangeLastStoppedJob();
-}
-*/
-
-
 BackgroundCommand::BackgroundCommand(const char *cmd_line, JobsList *jobs) : BuiltInCommand(cmd_line),jobs_list(jobs) {}
 void BackgroundCommand::execute() {
   if(this->params.size() >1){
@@ -1293,7 +1232,7 @@ void KillCommand::execute() {
     cerr << "smash error: kill: job-id " << job_id << " does not exist" << endl;
     return;
   }
-  if(sig_num >= 0 || sig_num < -64){
+  if(sig_num >= 0){
      cerr << "smash error: kill: invalid arguments" << endl;
      return;
   }
@@ -1310,13 +1249,37 @@ void KillCommand::execute() {
     return;
   }
   else if(abs(sig_num) == 9){
+    //cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
     this->jobs_list->removeJobById(job_id);
   }
 
   else if(abs(sig_num) == 19){
-    //TODO : check if is valid command
+    //TODO : sigstop
+    //cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
+    run_jobs.at(job_id).setStopped(true);
+    this->jobs_list->ChangeLastStoppedJob();
   }
-  cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
+
+  else if(abs(sig_num) == 18){
+    //sigcont
+    //TODO : debug by yourself
+    cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
+    run_jobs.find(job_id)->second.setBackground(false);
+    smash.setFgProcess(job_pid);
+    run_jobs.find(job_id)->second.setStopped(false);
+    //run_jobs.find(job_id)->second.setStopped(false);
+    waitpid(job_pid , nullptr , WUNTRACED); 
+    if(!run_jobs.find(job_id)->second.isStopped()){
+      this->jobs_list->removeJobById(job_id);
+    }
+    this->jobs_list->ChangeLastStoppedJob();
+  }
+
+  if (abs(sig_num) != 18)
+  {
+    cout << "signal number " << abs(sig_num) << " was sent to pid " << job_pid << endl;
+  }
+  
 }
 
 //---------------------------------special commands-------------------------------------------
