@@ -1,0 +1,32 @@
+smash> smash> smash>    PID PSR COMMAND
+  4927   0 bash
+  6460   0 ./smash
+  6461   1 ./infinityloop.out
+  6462   0 ps -o pid,psr,command
+smash> smash>    PID PSR COMMAND
+  4927   0 bash
+  6460   0 ./smash
+  6461   0 ./infinityloop.out
+  6463   1 ps -o pid,psr,command
+smash> smash> smash> smash> smash> smash>    PID PSR COMMAND
+  4927   0 bash
+  6460   0 ./smash
+  6461   0 ./infinityloop.out
+  6464   0 sleep 1000
+  6465   1 ps -o pid,psr,command
+smash> smash> ../'s type is "directory" and takes up 4096 bytes
+smash> ./'s type is "directory" and takes up 4096 bytes
+smash> ./smash's type is "regular" and takes up 152088 bytes
+smash> ./infinityloop.out's type is "regular" and takes up 8176 bytes
+smash> smash> smash> smash> -rwxrwxrwx 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> ---------- 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwxrwxrwx 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwxrwxrwx 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwsrwsrwt 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwsrwsrwt 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwsrwsrwt 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwsrwsrwt 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash> -rwxrw-rw- 1 student student 8176 Apr 20 18:34 ./infinityloop.out
+smash> smash: sending SIGKILL signal to 2 jobs:
+6461: ./infinityloop.out &
+6464: sleep 1000&

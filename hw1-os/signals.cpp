@@ -42,8 +42,48 @@ void ctrlCHandler(int sig_num) {
   }
 }
 
-void alarmHandler(int sig_num) {
-  
+void alarmHandler(int sig_num) 
+{
+  printf("here -2");
   // TODO: Add your implementation
+  cout << "smash: got an alarm" << endl ;
+  
+  printf("here -1");
+  if(smash.getTimeList()->getTimeMap().size() == 0)
+  {
+    return;
+  }
+  printf("here 0");
+  //int max_job_id = 0;
+  for (const auto &id : smash.getTimeList()->getTimeMap()) 
+  {
+    printf("here 1");
+    int job_id = smash.getTimeList()->Get_JobId_Of_Finished_Timeout(time(nullptr));
+    int TimeId =smash.getTimeList()->Get_TimeId_Of_Finished_Timeout(time(nullptr));
+    printf("here 2");
+      if (TimeId != -1) 
+      {
+        if( kill(smash.getTimeList()->getTimeMap().find(TimeId)->second.getPid() , SIGKILL ) == ERROR)
+        {
+          perror("smash error: kill failed");
+          return;
+        } 
+        else
+        {
+          printf("here 3");
+          smash.getTimeList()->removeTimeById(TimeId);
+          if (smash.getFgProcess() != 0)
+          {
+            smash.getJobsList()->removeJobById(smash.getTimeList()->Get_JobId_Of_Finished_Timeout(time(nullptr)));
+          }
+          
+          smash.getTimeList()->changeMaxTimeId();
+          smash.getJobsList()->ChangeLastStoppedJob();
+          smash.getJobsList()->removeFinishedJobs();
+          //update last of allllll things
+
+        }
+      }
+  }
 }
 

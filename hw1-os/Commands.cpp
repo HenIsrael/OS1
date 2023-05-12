@@ -129,10 +129,10 @@ bool isItChmodNumber(const string &str){
   if (str.empty()){
     return false;
   } 
-  if(str.length() > 3)
-  {
-    return false;
-  }
+  // if(str.length() > 3)
+  // {
+  //   return false;
+  // }
   for(unsigned int i=0; i<str.length(); i++){
       if(int(str[i]-'0') > 7){
           return false;
@@ -819,7 +819,7 @@ Command * SmallShell::CreateCommand(const char* cmd_line) {
   else if (firstWord.compare("setcore") == 0 || firstWord.compare("setcore&") == 0){
     return new SetcoreCommand(cmd_line_no_am);
   }
-  else if (firstWord.compare("getfileinfo") == 0 || firstWord.compare("getfileinfo&") == 0){
+  else if (firstWord.compare("getfiletype") == 0 || firstWord.compare("getfiletype&") == 0){
     return new GetFileTypeCommand(cmd_line_no_am);
   }
   else if (firstWord.compare("chmod") == 0 || firstWord.compare("chmod&") == 0 ){
@@ -1301,7 +1301,7 @@ void SetcoreCommand::execute()
   {
     cerr << "smash error: setcore: job-id " << this->params.at(0) << " does not exist" << endl;
   }
-  else if((stoi(this->params.at(1))<1 ) || (stoi(this->params.at(1)) > sysconf(_SC_NPROCESSORS_ONLN)) )
+  else if((stoi(this->params.at(1))<0 ) || (stoi(this->params.at(1)) > sysconf(_SC_NPROCESSORS_ONLN)) )
   {
     cerr << "smash error: setcore: invalid core number" << endl;
   }
@@ -1325,7 +1325,7 @@ void GetFileTypeCommand::execute()
 {
   if( this->params.size() != 1)
   {
-    cerr << "smash error: gettype: invalid aruments" << endl;
+    cerr << "smash error: gettype: invalid arguments" << endl;
   }
   else
   {
@@ -1370,7 +1370,7 @@ void GetFileTypeCommand::execute()
 
     int fileSize= sb.st_size;
 
-    cout << this->params.at(0) << "’s type is " << type <<" and takes up " << fileSize <<" bytes" << endl;
+    cout << this->params.at(0) << "'s type is \"" << type <<"\" and takes up " << fileSize <<" bytes" << endl;
 
   }
 }
@@ -1381,15 +1381,15 @@ void ChmodCommand::execute()
 {
   if( this->params.size() != 2)
   {
-    cerr << "smash error: chmod: invalid aruments" << endl;
+    cerr << "smash error: chmod: invalid arguments" << endl;
   }
   else if (!isItNumber(this->params.at(0)))
   {
-    cerr << "smash error: chmod: invalid aruments" << endl;
+    cerr << "smash error: chmod: invalid arguments" << endl;
   }
   else if(! isItChmodNumber(this->params.at(0)) )
   {
-    cerr << "smash error: chmod: invalid aruments" << endl;
+    cerr << "smash error: chmod: invalid arguments" << endl;
   }
   else
   {
