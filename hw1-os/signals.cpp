@@ -61,7 +61,7 @@ void alarmHandler(int sig_num) {
       smash.getTimeList()->removeTimeById(time_id);
       smash.getTimeList()->changeMaxTimeId();
     }else{
-      if(killpg(pid, SIGINT) == ERROR){
+      if(kill(pid, SIGKILL) == ERROR){
         perror("smash error: kill failed");
         return;
       }
