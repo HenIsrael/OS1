@@ -1411,13 +1411,6 @@ void TimeoutCommand::execute(){
 
   // TODO: check about valid arguments or jobs already finished
 
-  pid_t pid = fork();
-
-  if(pid == ERROR){
-    perror("smash error: fork failed");
-    return;
-  }
-
   if (params.size() == 0)
   {
     cout << "smash error: timeout: invalid arguments" <<endl;
@@ -1430,6 +1423,14 @@ void TimeoutCommand::execute(){
   if (durr < 0)
   {
     cout << "smash error: timeout: invalid arguments" <<endl;
+    return;
+  }
+
+
+  pid_t pid = fork();
+
+  if(pid == ERROR){
+    perror("smash error: fork failed");
     return;
   }
 

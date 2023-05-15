@@ -135,13 +135,3 @@ void alarmHandler(int sig_num) {
     smash.getTimeList()->What_is_the_Next_Timeout(now);
   }
 }
-
-      smash.getTimeList()->removeTimeById(time_id);
-      smash.getTimeList()->changeMaxTimeId();
-    }
-  }
-
-  if (smash.getTimeList()->getMaxId() != 0){
-    smash.getTimeList()->What_is_the_Next_Timeout(now);
-  }
-}
