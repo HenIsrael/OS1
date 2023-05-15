@@ -1,0 +1,39 @@
+./infinityloop.out &
+setcore 1 1
+ps -o pid,psr,command
+setcore 1 0
+ps -o pid,psr,command
+setcore 1 -1
+setcore 2 0
+setcore 1 0 1
+sleep 1000&
+setcore 2 0
+ps -o pid,psr,command
+setcore 1 99999
+getfiletype ../
+getfiletype ./
+getfiletype ./smash
+getfiletype ./infinityloop.out
+getfiletype ./I_Fucked_Strugos_Mom
+getfiletype ./infinityloop.out 214214124
+chmod 777 ./infinityloop.out
+ls -l ./infinityloop.out
+chmod 0 ./infinityloop.out
+ls -l ./infinityloop.out
+chmod 0777 ./infinityloop.out
+ls -l ./infinityloop.out
+chmod 99999 ./infinityloop.out
+ls -l ./infinityloop.out
+chmod -1 ./infinityloop.out
+ls -l ./infinityloop.out
+chmod a ./infinityloop.out
+ls -l ./infinityloop.out
+chmod 777 ./infinityloop.out 777
+ls -l ./infinityloop.out
+chmod 777 ./I_Fucked_Strugos_Mom_Again
+ls -l ./infinityloop.out
+chmod 766 ./infinityloop.out
+ls -l ./infinityloop.out
+quit kill
+
+
