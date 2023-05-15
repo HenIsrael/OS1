@@ -1459,7 +1459,8 @@ void TimeoutCommand::execute(){
       if (result_exc == ERROR){
         perror("smash error: execv failed");
         delete[] external_command;
-        return;
+        return; // TODO : maybe exit?
+
       }
 
     // simple
