@@ -2,6 +2,7 @@
 #include <signal.h>
 #include "signals.h"
 #include "Commands.h"
+#include <sys/wait.h>
 
 using namespace std;
 extern SmallShell &smash;
@@ -42,6 +43,8 @@ void ctrlCHandler(int sig_num) {
   }
 }
 
+
+/*
 void alarmHandler(int sig_num) 
 {
   //printf("here -2");
@@ -81,12 +84,53 @@ void alarmHandler(int sig_num)
           }
           else
           {
-            smash.getJobsList()->removeJobById(smash.getTimeList()->Get_JobId_Of_Finished_Timeout(time(nullptr)));
+            smash.getJobsList()->removeJobById(job_id);
           }
           smash.getTimeList()->changeMaxTimeId();
           smash.getJobsList()->ChangeLastStoppedJob();
           smash.getJobsList()->removeFinishedJobs();
 
   }
+  }
+}
+*/
+
+void alarmHandler(int sig_num) {
+  
+  // TODO: Add your implementation
+  std::cout << "smash: got an alarm" << std::endl;
+  time_t now = time(nullptr);
+  int time_id = smash.getTimeList()->Get_TimeId_Of_Finished_Timeout(now);
+
+  if (time_id != -1){
+    // case there is a process get timeout
+    int pid = smash.getTimeList()->getTimeMap().find(time_id)->second.getPid();
+    int job_id = smash.getTimeList()->Get_JobId_Of_Finished_Timeout(now);
+    int status;
+    if(waitpid(pid, &status, WNOHANG) != 0){
+      // if process terminated
+      smash.getJobsList()->removeJobById(job_id);
+      smash.getTimeList()->removeTimeById(time_id);
+      smash.getTimeList()->changeMaxTimeId();
+    }else{
+      if(kill(pid, SIGKILL) == ERROR){
+        perror("smash error: kill failed");
+        return;
+      }
+
+      char* command_timeout = smash.getTimeList()->getTimeMap().find(time_id)->second.getCommand();
+      std::cout << "smash: " << command_timeout << " timed out!" << std::endl;
+      if (smash.getJobsList()->getRunJobs().find(job_id)->second.isBackground() || smash.getJobsList()->getRunJobs().find(job_id)->second.isStopped()){
+        // if the process running in the back or stopped we need to remove it from the jobs list
+        smash.getJobsList()->removeJobById(job_id);
+      }
+
+      smash.getTimeList()->removeTimeById(time_id);
+      smash.getTimeList()->changeMaxTimeId();
+    }
+  }
+
+  if (smash.getTimeList()->getMaxId() != 0){
+    smash.getTimeList()->What_is_the_Next_Timeout(now);
   }
 }

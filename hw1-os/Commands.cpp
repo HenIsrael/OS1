@@ -408,7 +408,7 @@ ExternalCommand::ExternalCommand(const char* cmd_line, bool is_back) : Command(c
 
   // redirection with ovveride
   else{
-    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 06666);
+    fdfile = open(_trim(filename).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
   }
 
   if(fdfile == ERROR){
@@ -1418,7 +1418,21 @@ void TimeoutCommand::execute(){
     return;
   }
 
+  if (params.size() == 0)
+  {
+    cout << "smash error: timeout: invalid arguments" <<endl;
+    return;
+  }
+  
+
   int durr = stoi(this->params.at(0)); // TODO : 
+  
+  if (durr < 0)
+  {
+    cout << "smash error: timeout: invalid arguments" <<endl;
+    return;
+  }
+
 
   // child code
    if(pid == 0){
