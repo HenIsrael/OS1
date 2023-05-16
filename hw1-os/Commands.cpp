@@ -1486,10 +1486,10 @@ void TimeoutCommand::execute(){
       smash.setFgProcess(pid);
       waitpid(pid,nullptr,WUNTRACED);
 
-      if(!smash.getJobsList()->getRunJobs().find(new_job)->second.isStopped()){
-        smash.getJobsList()->removeJobById(new_job);
-        smash.getTimeList()->removeTimeById(time_id);
-      }
+      // if(!smash.getJobsList()->getRunJobs().find(new_job)->second.isStopped()){
+      //   smash.getJobsList()->removeJobById(new_job);
+      //   smash.getTimeList()->removeTimeById(time_id);
+      // }
 
       smash.getJobsList()->ChangeLastStoppedJob();
       smash.setFgProcess(0);
